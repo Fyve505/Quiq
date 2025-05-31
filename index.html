@@ -190,7 +190,6 @@ function exitPage() {
 <div class="h-captcha" data-sitekey="1290fa54-b664-4a32-bcc4-3c5cae7eb8f6"></div>
 
 <button onclick="checkCaptcha()">Check hCaptcha</button>
-
 <p id="result"></p>
 
 <script>
@@ -204,9 +203,10 @@ function checkCaptcha() {
         return;
     }
 
-    resultElem.textContent = 'hCaptcha completed!'
+    resultElem.textContent = '✅ hCaptcha completed!';
 }
 </script>
+
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7L0L468GX1"></script>
