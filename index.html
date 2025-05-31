@@ -25,7 +25,7 @@
             display: flex;
             gap: 10px;
         }
-        .buttons button, #fullscreen-btn, .website-btn {
+        .buttons button, #admin-btn, #fullscreen-btn, .website-btn, #website-page {
             padding: 10px 15px;
             font-size: 16px;
             cursor: pointer;
@@ -34,7 +34,7 @@
             color: white;
             border-radius: 5px;
         }
-        .buttons button:hover, #fullscreen-btn:hover, .website-btn:hover {
+        .buttons button:hover, #admin-btn:hover, #fullscreen-btn:hover, .website-btn:hover, #website-page:hover {
             background: #666;
         }
         .title {
@@ -54,12 +54,23 @@
         #fullscreen-btn {
             position: absolute;
             right: 20px;
+           }
+        #admin-btn {
+            position: absolute;
+            right: 137px;
         }
         #websites-container {
             display: none;
             margin-top: 20px;
         }
         .website-btn {
+            padding: 15px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            margin: 5px;
+          }
+        #website-page {
             padding: 15px;
             font-weight: bold;
             border: none;
@@ -78,6 +89,9 @@
         }
         #ice {
             background-color: #5A7BAE;
+          }
+        #website-page {
+            background-color: white;
         }
         #iframe-container {
             margin-top: 20px;
@@ -98,7 +112,7 @@
         }
         .frozen {
             pointer-events: none;
-            visibility: hidden;
+            visibility: hidden; /* Make the content disappear visually when frozen */
         }
     </style>
 </head>
@@ -109,25 +123,23 @@
             <button onclick="reloadPage()">Reload</button>
             <button onclick="closeFrame()">Close Frame</button>
             <button onclick="exitPage()">Exit</button>
-            <button onclick="window.open('https://mega.nz/file/7V5WjIrQ#z1nbKNSwi7DTzyAfyxlkqwiAcsTSVHHQz8sO5FKRlwY', '_blank')">App</button>
+          <button onclick="alart('...')">|</button>
+          <button onclick="window.open('https://mega.nz/file/vUp0XazZ#vpum25d2WpTdWxpmPF76kt7xVhQGHx6ZnZfzpWHzGRI', '_blank');">App</button>
         </div>
         <div class="title">
             <img src="icon.png" alt="Quiq Icon"> Quiq
         </div>
-    <button id="fullscreen-btn" onclick="toggleFullScreen()">Full Screen</button>
-</div>
-
-</div>
-
-        
+        <button id="fullscreen-btn" onclick="toggleFullScreen()">Full Screen</button>
+      <button id="admin-btn" onclick="window.location.href='https://quiq.static.domains/admin';">Admin</button>
     </div>
 
     <button id="websites" class="website-btn" onclick="toggleWebsites()">Websites</button>
 
     <div id="websites-container">
-        <button id="useless" class="website-btn" onclick="loadIframe('https://use-less-stuff.mozellosite.com')">Use-less-stuff</button>
+        <button id="useless" class="website-btn" onclick="loadIframe('https://use-less-stuff.mozellosite.com/home')">Use-less-stuff</button>
         <button id="banana" class="website-btn" onclick="loadIframe('https://banana-web-6.mozellosite.com')">Bannana-Web-6</button>
         <button id="ice" class="website-btn" onclick="loadIframe('https://ice-web.mozellosite.com')">Ice-Web</button>
+      <button id="website-page" class="website-btn" onclick="window.open('https://quiq.static.domains/websites');">Website-Page</button>
     </div>
 
     <div id="iframe-container">
@@ -139,8 +151,8 @@
     </div>
 
     <script>
-        let isFrozen = false;
-        let freezeTimeout;
+        let isFrozen = false;  // Track if the page content is frozen
+        let freezeTimeout;     // Variable to store freeze timeout
 
         function toggleWebsites() {
             let container = document.getElementById('websites-container');
@@ -164,17 +176,17 @@
         }
 
         function reloadPage() {
-            location.reload();
+            location.reload();  // Reloads the page
         }
 
         function closeFrame() {
             let iframeContainer = document.getElementById('iframe-container');
-            iframeContainer.style.display = "none";
+            iframeContainer.style.display = "none";  // Hides the iframe
         }
 
-function exitPage() {
-    window.open('exit.html', '_self'); // Same tab
-}
+        function exitPage() {
+            window.location.href = "about:blank";  // Change the URL to about:blank
+        }
 
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
@@ -187,6 +199,7 @@ function exitPage() {
         }
     </script>
 
+<script src="https://static.app/js/static.js" type="text/javascript"></script>
 </body>
 </html>
 
