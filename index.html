@@ -185,33 +185,36 @@ function exitPage() {
 </html>
 
 
-<!-- hCaptcha widget -->
-<div class="h-captcha" data-sitekey="1290fa54-b664-4a32-bcc4-3c5cae7eb8f6"></div>
+<!-- hCaptcha overlay -->
+<div id="captcha-overlay">
+    <h2>Please complete the hCaptcha to continue</h2>
+    <div class="h-captcha" data-sitekey="1290fa54-b664-4a32-bcc4-3c5cae7eb8f6" data-callback="onCaptchaSuccess"></div>
+</div>
 
-<br />
-
-<button onclick="checkCaptcha()">Check hCaptcha</button>
-
-<p id="result"></p>
+<!-- Your actual website content -->
+<div id="main-content">
+    <h1>Welcome to My Website</h1>
+    <p>This is your protected content that only loads after hCaptcha is solved.</p>
+</div>
 
 <script>
-function checkCaptcha() {
-    const response = hcaptcha.getResponse();
-    const resultElem = document.getElementById('result');
+function onCaptchaSuccess(token) {
+    // Store in sessionStorage so it only runs once per tab/session
+    sessionStorage.setItem("captchaPassed", "true");
 
-    if (!response) {
-        alert('Please complete the hCaptcha first.');
-        resultElem.textContent = '';
-        return;
-    }
-
-    resultElem.textContent = 'hCaptcha completed! Response token: ' + response;
-
-    // Optionally, here you can send `response` to your server for verification
+    // Hide the overlay and show the real content
+    document.getElementById("captcha-overlay").style.display = "none";
+    document.getElementById("main-content").style.display = "block";
 }
-</script>
 
-<script src="https://hcaptcha.com/1/api.js" async defer></script>
+window.onload = function() {
+    if (sessionStorage.getItem("captchaPassed") === "true") {
+        // Already passed captcha in this session
+        document.getElementById("captcha-overlay").style.display = "none";
+        document.getElementById("main-content").style.display = "block";
+    }
+};
+</script>
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7L0L468GX1"></script>
