@@ -98,7 +98,7 @@
         }
         .frozen {
             pointer-events: none;
-            visibility: hidden; /* Make the content disappear visually when frozen */
+            visibility: hidden;
         }
     </style>
 </head>
@@ -133,8 +133,8 @@
     </div>
 
     <script>
-        let isFrozen = false;  // Track if the page content is frozen
-        let freezeTimeout;     // Variable to store freeze timeout
+        let isFrozen = false;
+        let freezeTimeout;
 
         function toggleWebsites() {
             let container = document.getElementById('websites-container');
@@ -158,16 +158,16 @@
         }
 
         function reloadPage() {
-            location.reload();  // Reloads the page
+            location.reload();
         }
 
         function closeFrame() {
             let iframeContainer = document.getElementById('iframe-container');
-            iframeContainer.style.display = "none";  // Hides the iframe
+            iframeContainer.style.display = "none";
         }
 
         function exitPage() {
-            window.location.href = "exit.html";  // Change the URL to about:blank
+            window.open('exit.html', '_blank');
         }
 
         function toggleFullScreen() {
