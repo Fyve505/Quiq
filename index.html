@@ -369,5 +369,21 @@ function checkCaptcha() {
   gtag('config', 'G-7L0L468GX1');
 </script>
 
-<!-- Extra --!>
+
+<!-- extra --!>
+<!-- 1 -->
   <script src="resources/right-click.js"></script>
+<!-- 2 -->
+<noscript>
+  <p style="color: red; font-weight: bold;">
+    This website needs JavaScript to work!
+  </p>
+</noscript>
+<script>
+  fetch('textfile.txt')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('content').innerHTML = data;
+    })
+    .catch(error => console.error('Error loading file:', error));
+</script>
