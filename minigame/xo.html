@@ -2,13 +2,29 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>XO Game</title>
+  <title>XO Game - Quiq</title>
   <style>
+    :root {
+      --bg-light: linear-gradient(to right, #f9f9f9, #e0e0e0);
+      --bg-dark: linear-gradient(to right, #1e1e1e, #3a3a3a);
+      --text-light: #222;
+      --text-dark: #eee;
+      --x-color: #222222;
+      --o-color: #dddddd;
+    }
+    body.light {
+      background: var(--bg-light);
+      color: var(--text-light);
+    }
+    body.dark {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+    }
     body {
       font-family: 'Segoe UI', sans-serif;
       text-align: center;
       padding-top: 30px;
-      background: linear-gradient(to right, #f9f9f9, #e0e0e0);
+      transition: background 0.5s, color 0.5s;
     }
     #board {
       display: grid;
@@ -22,8 +38,6 @@
       height: 100px;
       font-size: 2.5em;
       font-weight: bold;
-      color: #222;
-      background: white;
       border-radius: 12px;
       border: 3px solid #555;
       display: flex;
@@ -32,11 +46,21 @@
       cursor: pointer;
       transition: background 0.3s, transform 0.2s;
     }
+    .cell.X { color: var(--x-color); }
+    .cell.O { color: var(--o-color); }
+
+    body.dark .cell {
+      background: #444;
+      border: 3px solid #888;
+    }
     .cell:hover {
       background: #f0f0f0;
       transform: scale(1.05);
     }
-    select, button {
+    body.dark .cell:hover {
+      background: #666;
+    }
+    select, button, input[type="color"] {
       margin: 5px;
       padding: 6px 10px;
       font-size: 1em;
@@ -47,7 +71,6 @@
       font-weight: bold;
       font-size: 1.2em;
       margin-top: 20px;
-      color: #333;
     }
     .options-container {
       background: #fff;
@@ -57,9 +80,16 @@
       margin: 10px auto;
       display: inline-block;
     }
+    body.dark .options-container {
+      background: #2e2e2e;
+      box-shadow: 0 0 10px rgba(255,255,255,0.1);
+    }
+    .settings-container {
+      margin-top: 20px;
+    }
   </style>
 </head>
-<body>
+<body class="light">
 
 <h1>XO Game</h1>
 
@@ -93,6 +123,22 @@
   </div>
 </div>
 
+<div class="settings-container">
+  <label>X Color:</label>
+  <input type="color" id="xColorPicker" value="#222222">
+
+  <label>O Color:</label>
+  <input type="color" id="oColorPicker" value="#dddddd">
+
+  <button onclick="invertColors()">Invert Colors</button>
+
+  <label>Theme:</label>
+  <select id="themeSelector">
+    <option value="light">Light</option>
+    <option value="dark">Dark</option>
+  </select>
+</div>
+
 <div id="board"></div>
 <div id="status"></div>
 <button onclick="resetGame()">Restart</button>
@@ -105,6 +151,9 @@
   const botModeEl = document.getElementById('botMode');
   const botTypeEl = document.getElementById('botType');
   const botVersionEl = document.getElementById('botVersion');
+  const xColorPicker = document.getElementById('xColorPicker');
+  const oColorPicker = document.getElementById('oColorPicker');
+  const themeSelector = document.getElementById('themeSelector');
 
   let board, currentPlayer, gameOver;
 
@@ -119,11 +168,33 @@
     resetGame();
   });
 
+  xColorPicker.addEventListener('input', () => {
+    document.documentElement.style.setProperty('--x-color', xColorPicker.value);
+  });
+
+  oColorPicker.addEventListener('input', () => {
+    document.documentElement.style.setProperty('--o-color', oColorPicker.value);
+  });
+
+  function invertColors() {
+    const x = xColorPicker.value;
+    const o = oColorPicker.value;
+    xColorPicker.value = o;
+    oColorPicker.value = x;
+    xColorPicker.dispatchEvent(new Event('input'));
+    oColorPicker.dispatchEvent(new Event('input'));
+  }
+
+  themeSelector.addEventListener('change', () => {
+    document.body.className = themeSelector.value;
+  });
+
   function drawBoard() {
     boardEl.innerHTML = '';
     board.forEach((cell, index) => {
       const cellEl = document.createElement('div');
       cellEl.className = 'cell';
+      if (cell) cellEl.classList.add(cell);
       cellEl.textContent = cell || '';
       cellEl.addEventListener('click', () => handleClick(index));
       boardEl.appendChild(cellEl);
