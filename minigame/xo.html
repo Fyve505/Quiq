@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>XO Game Advanced</title>
+  <title>XO Game – Bot Intelligence & Cheater Mode</title>
   <style>
     body {
       font-family: Arial;
@@ -64,6 +64,12 @@
     <option value="super">Super</option>
     <option value="max">Max</option>
   </select>
+
+  <label>Version:</label>
+  <select id="botVersion">
+    <option value="fair">Fair</option>
+    <option value="cheater">Cheater</option>
+  </select>
 </div>
 
 <div id="board"></div>
@@ -77,6 +83,7 @@
   const botOptionsEl = document.getElementById('botOptions');
   const botModeEl = document.getElementById('botMode');
   const botTypeEl = document.getElementById('botType');
+  const botVersionEl = document.getElementById('botVersion');
 
   let board = Array(9).fill(null);
   let currentPlayer = 'X';
@@ -119,7 +126,7 @@
     } else {
       currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
       if (modeEl.value === 'bot' && currentPlayer === 'O') {
-        setTimeout(botMove, 400);
+        setTimeout(botMove, 500);
       }
     }
   }
@@ -127,6 +134,11 @@
   function botMove() {
     const mode = botModeEl.value;
     const type = botTypeEl.value;
+    const version = botVersionEl.value;
+
+    if (version === 'cheater') {
+      cheatBotMove(); return;
+    }
 
     let move;
     if (type === 'max' && mode === 'hard') {
@@ -140,6 +152,40 @@
     }
 
     if (move !== null) handleClick(move);
+  }
+
+  function cheatBotMove() {
+    // Cheat: overwrite your move OR take 2 turns
+    let overwritten = false;
+
+    // Option 1: overwrite player's move
+    for (let i = 0; i < 9; i++) {
+      if (board[i] === 'X') {
+        board[i] = 'O';
+        overwritten = true;
+        break;
+      }
+    }
+
+    // Option 2: place 2 moves if no overwrite
+    if (!overwritten) {
+      const empty = board.map((v, i) => v === null ? i : null).filter(i => i !== null);
+      if (empty.length >= 2) {
+        board[empty[0]] = 'O';
+        board[empty[1]] = 'O';
+      } else if (empty.length === 1) {
+        board[empty[0]] = 'O';
+      }
+    }
+
+    drawBoard();
+
+    if (checkWinner('O')) {
+      statusEl.textContent = `Bot (Cheater) Wins!`;
+      gameOver = true;
+    } else {
+      currentPlayer = 'X';
+    }
   }
 
   function randomMove() {
@@ -202,4 +248,33 @@
       }
     });
 
-    return isMax ? Math.max(...moves) : Math.min(...moves)
+    return isMax ? Math.max(...moves) : Math.min(...moves);
+  }
+
+  function getWinner(b) {
+    for (let [a, b1, c] of winCombos) {
+      if (b[a] && b[a] === b[b1] && b[a] === b[c]) return b[a];
+    }
+    return b.every(cell => cell) ? 'draw' : null;
+  }
+
+  function checkWinner(player) {
+    return winCombos.some(combo => combo.every(i => board[i] === player));
+  }
+
+  function resetGame() {
+    board = Array(9).fill(null);
+    currentPlayer = (modeEl.value === 'bot' && botVersionEl.value === 'cheater') ? 'O' : 'X';
+    gameOver = false;
+    statusEl.textContent = '';
+    drawBoard();
+    if (modeEl.value === 'bot' && currentPlayer === 'O') {
+      setTimeout(botMove, 500);
+    }
+  }
+
+  drawBoard();
+</script>
+
+</body>
+</html>
