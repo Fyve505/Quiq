@@ -124,33 +124,68 @@
       visibility: hidden;
     }
 
-    /* Pro popup styles */
+    /* Draggable popup styles */
     #pro-popup {
       display: none;
       position: fixed;
-      top: 60px;
+      top: 100px;
       left: 50%;
       transform: translateX(-50%);
       background: #222;
       color: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px #000;
-      z-index: 999;
+      width: 300px;
+      padding: 0;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+      z-index: 1000;
+      border: 2px solid #555;
+      user-select: none;
     }
 
-    #pro-popup a {
+    #pro-popup-header {
+      background: #444;
+      padding: 10px;
+      cursor: move;
+      font-weight: bold;
+      border-bottom: 1px solid #666;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+    }
+
+    #pro-popup-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 15px;
+    }
+
+    #pro-popup-content a {
       color: white;
       text-decoration: none;
+      background: #333;
+      padding: 8px;
+      border-radius: 4px;
+      text-align: center;
+      display: block;
+    }
+
+    #pro-popup-content a:hover {
+      background: #555;
     }
 
     #pro-popup button {
-      margin-top: 15px;
+      width: 100%;
       background: red;
       color: white;
       border: none;
-      padding: 8px 12px;
-      border-radius: 5px;
+      padding: 10px;
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+      cursor: pointer;
+    }
+
+    #pro-popup button:hover {
+      background: darkred;
     }
   </style>
 </head>
@@ -194,20 +229,19 @@
   </div>
 
   <div id="pro-popup">
-    <h3>Links</h3>
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-  <a href="https://example.com" target="_blank">wait: 1</a>
-  <a href="https://example.com" target="_blank">wait: 2</a>
-  <a href="https://example.com" target="_blank">wait: 3</a>
-  <a href="https://example.com" target="_blank">wait: 4</a>
-  <a href="https://example.com" target="_blank">wait: 5</a>
-  <a href="https://example.com" target="_blank">wait: 6</a>
-  <a href="https://example.com" target="_blank">wait: 7</a>
-  <a href="https://example.com" target="_blank">wait: 8</a>
-  <a href="https://example.com" target="_blank">wait: 9</a>
-  <a href="https://example.com" target="_blank">wait: 10</a>
-</div>
-
+    <div id="pro-popup-header">Links</div>
+    <div id="pro-popup-content">
+      <a href="https://example.com" target="_blank">wait: 1</a>
+      <a href="https://example.com" target="_blank">wait: 2</a>
+      <a href="https://example.com" target="_blank">wait: 3</a>
+      <a href="https://example.com" target="_blank">wait: 4</a>
+      <a href="https://example.com" target="_blank">wait: 5</a>
+      <a href="https://example.com" target="_blank">wait: 6</a>
+      <a href="https://example.com" target="_blank">wait: 7</a>
+      <a href="https://example.com" target="_blank">wait: 8</a>
+      <a href="https://example.com" target="_blank">wait: 9</a>
+      <a href="https://example.com" target="_blank">wait: 10</a>
+    </div>
     <button onclick="toggleProPopup()">Close</button>
   </div>
 
@@ -256,10 +290,6 @@
       iframeContainer.style.display = "none";
     }
 
-    function exitPage() {
-      window.location.href = "about:blank";
-    }
-
     function toggleFullScreen() {
       if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen();
@@ -274,9 +304,34 @@
       const popup = document.getElementById('pro-popup');
       popup.style.display = (popup.style.display === 'none' || popup.style.display === '') ? 'block' : 'none';
     }
+
+    // Drag functionality for pro-popup
+    let dragPopup = document.getElementById("pro-popup");
+    let header = document.getElementById("pro-popup-header");
+    let isDragging = false;
+    let offsetX, offsetY;
+
+    header.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      offsetX = e.clientX - dragPopup.offsetLeft;
+      offsetY = e.clientY - dragPopup.offsetTop;
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        dragPopup.style.left = `${e.clientX - offsetX}px`;
+        dragPopup.style.top = `${e.clientY - offsetY}px`;
+        dragPopup.style.transform = 'none';
+      }
+    });
   </script>
 </body>
 </html>
+
 
 
 
