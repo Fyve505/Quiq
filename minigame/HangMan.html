@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modern Hangman</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      max-width: 600px;
+      width: 90%;
+    }
+    .word {
+      font-size: 2rem;
+      letter-spacing: 10px;
+      margin-bottom: 1.5rem;
+    }
+    .keyboard button {
+      padding: 10px 15px;
+      margin: 5px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      background-color: #eee;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .keyboard button:hover {
+      background-color: #ddd;
+    }
+    .hangman {
+      font-size: 1.2rem;
+      margin-top: 1rem;
+    }
+    .hidden {
+      display: none;
+    }
+    .btn {
+      padding: 10px 20px;
+      background: #4facfe;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="setup-section">
+      <h2>Set Your Own Word</h2>
+      <input type="password" id="custom-word" placeholder="Enter a word (10+ characters)" style="padding:10px;width:100%;margin-bottom:1rem;">
+      <button class="btn" onclick="startCustomGame()">Start Game</button>
+      <p>Or <button class="btn" onclick="startRandomGame()">Play Random Word</button></p>
+    </div>
+    <div id="game-section" class="hidden">
+      <div class="word" id="word-display"></div>
+      <div class="keyboard" id="keyboard"></div>
+      <div class="hangman" id="hangman-status">Mistakes: 0 / 6</div>
+      <button class="btn" onclick="location.reload()">Restart</button>
+    </div>
+  </div>
+
+  <script>
+    const randomWords = [
+      "extraordinary", "championships", "concentration", "decomposition",
+      "misunderstood", "conversations", "programmingly", "constructions",
+      "environmental", "entertainment", "manufacturers", "transmissions",
+      "technological", "interpretation", "relationships", "consideration",
+      "revolutionary", "determination", "documentation", "transformation",
+      "confrontation", "recommendation", "rehabilitation", "congressional",
+      "comprehensive", "inspirational", "contemplation", "authentication",
+      "reconciliation", "configuration", "sophisticated", "contribution",
+      "appreciation", "communication", "identification", "investigation",
+      "civilization", "transportation", "refrigeration", "collaboration",
+      "representation", "demonstration", "implementation", "introduction",
+      "notification", "confirmation", "transcription", "considerately"
+    ];
+
+    let selectedWord = "";
+    let guessedLetters = [];
+    let mistakes = 0;
+
+    function startCustomGame() {
+      const input = document.getElementById("custom-word").value.trim().toLowerCase();
+      if (input.length < 10) {
+        alert("Please enter a word with at least 10 characters.");
+        return;
+      }
+      selectedWord = input;
+      initGame();
+    }
+
+    function startRandomGame() {
+      selectedWord = randomWords[Math.floor(Math.random() * randomWords.length)];
+      initGame();
+    }
+
+    function initGame() {
+      document.getElementById("setup-section").classList.add("hidden");
+      document.getElementById("game-section").classList.remove("hidden");
+      guessedLetters = [];
+      mistakes = 0;
+      updateWordDisplay();
+      updateKeyboard();
+      updateHangmanStatus();
+    }
+
+    function updateWordDisplay() {
+      const display = selectedWord.split('').map(letter => guessedLetters.includes(letter) ? letter : '_').join(' ');
+      document.getElementById("word-display").textContent = display;
+    }
+
+    function updateKeyboard() {
+      const keyboard = document.getElementById("keyboard");
+      keyboard.innerHTML = "";
+      for (let i = 65; i <= 90; i++) {
+        const char = String.fromCharCode(i).toLowerCase();
+        const btn = document.createElement("button");
+        btn.textContent = char;
+        btn.disabled = guessedLetters.includes(char);
+        btn.onclick = () => guessLetter(char);
+        keyboard.appendChild(btn);
+      }
+    }
+
+    function guessLetter(letter) {
+      guessedLetters.push(letter);
+      if (!selectedWord.includes(letter)) {
+        mistakes++;
+      }
+      updateWordDisplay();
+      updateKeyboard();
+      updateHangmanStatus();
+
+      const wordGuessed = selectedWord.split('').every(l => guessedLetters.includes(l));
+      if (wordGuessed) {
+        alert("🎉 You won!");
+        document.getElementById("keyboard").innerHTML = "";
+      } else if (mistakes >= 6) {
+        alert("💀 You lost! Word was: " + selectedWord);
+        document.getElementById("keyboard").innerHTML = "";
+      }
+    }
+
+    function updateHangmanStatus() {
+      document.getElementById("hangman-status").textContent = `Mistakes: ${mistakes} / 6`;
+    }
+  </script>
+</body>
+</html>
