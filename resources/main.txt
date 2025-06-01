@@ -1,1 +1,1 @@
-<p>Quiq.vercel is still Under Dev<p>
+<p style="font-weight: 900; color: red;">Quiq.vercel is still Under Dev</p>
