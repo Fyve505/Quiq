@@ -370,14 +370,3 @@ function checkCaptcha() {
 </script>
 
 <!-- Honey-Pot --!>
-
-<form action="/submit" method="POST">
-  <!-- Visible form fields for users -->
-  <input type="text" name="username" required>
-  <input type="password" name="password" required>
-
-  <!-- Honeypot field (hidden from users) -->
-  <input type="text" name="phone_number" style="display:none" autocomplete="off" tabindex="-1">
-
-  <button type="submit">Submit</button>
-</form>
