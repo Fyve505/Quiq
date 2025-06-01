@@ -108,6 +108,23 @@
       margin-right: auto;
       display: none;
     }
+<!-- Pro Popup -->
+<div id="pro-popup" style="display:none; position:fixed; top:60px; left:50%; transform:translateX(-50%); background:#222; color:white; padding:20px; border-radius:10px; box-shadow:0 0 10px #000; z-index:999;">
+  <h3>Pro Links</h3>
+  <div style="display:flex; flex-direction:column; gap:10px;">
+    <a href="https://example.com" target="_blank" style="color:white; text-decoration:none;">wait: 1</a>
+    <a href="https://example.com" target="_blank" style="color:white; text-decoration:none;">wait: 2</a>
+    <a href="https://example.com" target="_blank" style="color:white; text-decoration:none;">wait: 3</a>
+    <a href="https://example.com" target="_blank" style="color:white; text-decoration:none;">wait: 4</a>
+    <a href="https://example.com" target="_blank" style="color:white; text-decoration:none;">wait: 5</a>
+    <a href="https://example.com" target="_blank" style="color:white; text-decoration:none;">wait: 6</a>
+    <a href="https://example.com" target="_blank" style="color:white; text-decoration:none;">wait: 7</a>
+    <a href="https://example.com" target="_blank" style="color:white; text-decoration:none;">wait: 8</a>
+    <a href="https://example.com" target="_blank" style="color:white; text-decoration:none;">wait: 9</a>
+    <a href="https://example.com" target="_blank" style="color:white; text-decoration:none;">wait: 10</a>
+  </div>
+  <button onclick="toggleProPopup()" style="margin-top:15px; background:red; color:white; border:none; padding:8px 12px; border-radius:5px;">Close</button>
+</div>
 
     iframe {
       width: 100%;
@@ -132,7 +149,7 @@
       <button onclick="reloadPage()">Reload</button>
       <button onclick="closeFrame()">Close Frame</button>
       <button onclick="window.close()">Exit</button>
-      <button onclick="alert('...')">|</button>
+      <button onclick="toggleProPopup()">|</button>
       <button onclick="window.open('https://mega.nz/file/7V5WjIrQ#z1nbKNSwi7DTzyAfyxlkqwiAcsTSVHHQz8sO5FKRlwY', '_blank')">App</button>
     </div>
     <div class="title">
