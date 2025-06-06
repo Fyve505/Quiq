@@ -1,699 +1,306 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Runner - Quiq</title>
-<style>
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--fg);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    overflow: hidden;
-    user-select: none;
-  }
-  canvas {
-    background: var(--bg-grad);
-    display: block;
-    width: 100vw;
-    height: 100vh;
-  }
-  #ui {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    z-index: 15;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 15px;
-    border-radius: 10px;
-    backdrop-filter: blur(5px);
-  }
-  #ui button {
-    padding: 8px 12px;
-    margin-right: 8px;
-    border: none;
-    border-radius: 6px;
-    background: var(--btn-bg);
-    color: var(--btn-fg);
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s;
-  }
-  #ui button:hover {
-    background: var(--btn-hover-bg);
-  }
-  #ui label {
-    display: inline-block;
-    margin-left: 10px;
-    font-weight: 600;
-  }
-  #scoreDisplay {
-    margin-top: 10px;
-    font-size: 18px;
-  }
-  #powerCounts {
-    margin-top: 5px;
-    font-size: 18px;
-  }
-  #settings, #shop {
-    position: absolute;
-    top: 80px;
-    right: 20px;
-    width: 320px;
-    max-height: 75vh;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 15px;
-    border-radius: 10px;
-    backdrop-filter: blur(5px);
-    color: var(--fg);
-    overflow-y: auto;
-    z-index: 20;
-    display: none;
-  }
-  #settings h3, #shop h3 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    user-select: none;
-  }
-  #settings label, #shop label {
-    display: block;
-    margin-bottom: 8px;
-  }
-  #settings input[type="color"],
-  #settings input[type="number"],
-  #settings input[type="text"],
-  #settings select,
-  #shop button {
-    width: 100%;
-    padding: 6px 8px;
-    margin-top: 4px;
-    border-radius: 5px;
-    border: none;
-    font-size: 14px;
-  }
-  #shop button {
-    background: var(--btn-bg);
-    color: var(--btn-fg);
-    cursor: pointer;
-    margin-bottom: 10px;
-  }
-  #shop button:disabled {
-    background: #555;
-    cursor: not-allowed;
-  }
-  #overlay {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.75);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    color: var(--fg);
-    font-size: 2rem;
-    z-index: 50;
-  }
-  #overlay button {
-    margin-top: 20px;
-    padding: 12px 24px;
-    font-size: 1.2rem;
-    cursor: pointer;
-    border-radius: 8px;
-    border: none;
-    background: var(--btn-bg);
-    color: var(--btn-fg);
-  }
-  /* Drag styles */
-  .draggable {
-    cursor: move;
-  }
-  /* Theme variables */
-  :root {
-    --bg: #1e1e1e;
-    --fg: #eee;
-    --bg-grad: linear-gradient(to top, #1c1c1c, #2a2a2a);
-    --btn-bg: #333;
-    --btn-hover-bg: #555;
-    --btn-fg: #eee;
-  }
-  [data-theme="light"] {
-    --bg: #fafafa;
-    --fg: #111;
-    --bg-grad: linear-gradient(to top, #fff, #ddd);
-    --btn-bg: #ddd;
-    --btn-hover-bg: #bbb;
-    --btn-fg: #111;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <title>Runner - Quiq</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--fg); font-family:'Segoe UI'; overflow:hidden }
+    canvas { background:var(--bg-grad); display:block; width:100vw;height:100vh }
+    #ui,#settings{position:absolute;z-index:10;padding:15px;border-radius:10px;background:rgba(0,0,0,0.5);backdrop-filter:blur(5px)}
+    #ui{top:20px;left:20px}
+    #settings{top:20px;right:20px;width:320px;max-height:85vh;overflow:auto;display:none}
+    .btn,select,label,input[type=color],input[type=number],input[type=text]{margin:8px 0;width:100%}
+    .btn{padding:8px;border:none;border-radius:6px;background:var(--btn-bg);color:var(--btn-fg);cursor:pointer}
+    input[type=color]{padding:0;height:28px}
+    :root {--bg:#1e1e1e;--fg:#eee;--bg-grad:linear-gradient(to top,#1c1c1c,#2a2a2a);--btn-bg:#333;--btn-fg:#eee}
+    [data-theme=light]{--bg:#fafafa;--fg:#111;--bg-grad:linear-gradient(to top,#fff,#ddd);--btn-bg:#ddd;--btn-fg:#111}
+    #overlay{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);flex-direction:column;z-index:9}
+    #overlay .btn{max-width:200px}
+  </style>
 </head>
 <body data-theme="dark">
+  <canvas id="gameCanvas"></canvas>
+  <div id="ui">
+    <button class="btn" onclick="togglePause()">⏯ Pause</button>
+    <button class="btn" onclick="restartGame()">🔁 Restart</button>
+    <button class="btn" onclick="toggleSettings()">⚙️ Settings</button>
+    <label>Difficulty:
+      <select id="difficultySelect" onchange="setDifficulty(this.value)">
+        <option value="5">Easy</option>
+        <option value="8" selected>Medium</option>
+        <option value="12">Hard</option>
+      </select>
+    </label>
+    <div id="scoreDisplay">Score: 0 | High: 0</div>
+    <div>🎁 Power‑Ups: <span id="powerCounts"></span></div>
+  </div>
 
-<canvas id="gameCanvas" tabindex="0"></canvas>
+  <div id="settings">
+    <h3>Settings</h3>
+    <label><input type="checkbox" id="themeToggle"> Light Theme</label>
+    <label>Player Color: <input type="color" id="colorPlayer" value="#1E90FF"></label>
+    <label>Obstacle Color: <input type="color" id="colorObstacle" value="#DC143C"></label>
+    <label><input type="checkbox" id="audioToggle" checked> Sound FX</label>
+    <hr><h4>Keybindings</h4>
+    <label>Jump: <input type="text" id="keyJump" value=" " maxlength="1"></label>
+    <label>Duck: <input type="text" id="keyDuck" value="ArrowDown" maxlength="1"></label>
+    <label>Power: <input type="text" id="keyPower" value="p" maxlength="1"></label>
+    <hr><h4>Power-Ups</h4>
+    <label>Shield: <input type="number" id="countShield" min=0 max=5 value=1></label>
+    <label>Speed Boost: <input type="number" id="countSpeed" min=0 max=5 value=1></label>
+    <label>Double Points: <input type="number" id="countDouble" min=0 max=5 value=1></label>
+    <label>Double Jump: <input type="number" id="countDoubleJump" min=0 max=5 value=1></label>
+    <label>Magnet: <input type="number" id="countMagnet" min=0 max=5 value=1></label>
+    <button class="btn" onclick="applySettings()">Apply Settings</button>
+  </div>
 
-<div id="ui">
-  <button id="btnPause">⏯ Pause</button>
-  <button id="btnRestart">🔁 Restart</button>
-  <button id="btnSettings">⚙️ Settings</button>
-  <button id="btnShop">🛒 Shop</button>
-  <label>
-    Difficulty:
-    <select id="difficultySelect">
-      <option value="5">Easy</option>
-      <option value="8" selected>Medium</option>
-      <option value="12">Hard</option>
-    </select>
-  </label>
-  <div id="scoreDisplay">Score: 0 | High: 0 | Coins: 0</div>
-  <div>🎁 Power‑Ups: <span id="powerCounts"></span></div>
-</div>
-
-<div id="settings" class="draggable" aria-label="Settings Menu" role="dialog">
-  <h3>Settings</h3>
-  <label><input type="checkbox" id="themeToggle"> Light Theme</label>
-  <label>Player Color: <input type="color" id="colorPlayer" value="#1E90FF"></label>
-  <label>Obstacle Color: <input type="color" id="colorObstacle" value="#DC143C"></label>
-  <label><input type="checkbox" id="audioToggle" checked> Sound FX</label>
-  <hr>
-  <h4>Keybindings</h4>
-  <label>Jump: <input type="text" id="keyJump" maxlength="1" value=" "></label>
-  <label>Duck: <input type="text" id="keyDuck" maxlength="1" value="ArrowDown"></label>
-  <label>Power: <input type="text" id="keyPower" maxlength="1" value="p"></label>
-  <label>Pause: <input type="text" id="keyPause" maxlength="1" placeholder="None"></label>
-  <label>Restart: <input type="text" id="keyRestart" maxlength="1" placeholder="None"></label>
-  <label>Settings: <input type="text" id="keySettings" maxlength="1" placeholder="None"></label>
-  <button id="btnApplySettings">Apply Settings</button>
-</div>
-
-<div id="shop" class="draggable" aria-label="Shop Menu" role="dialog">
-  <h3>Shop (25 coins each)</h3>
-  <button data-power="shield">Buy Shield</button>
-  <button data-power="speed">Buy Speed Boost</button>
-  <button data-power="double">Buy Double Points</button>
-  <button data-power="doubleJump">Buy Double Jump</button>
-  <button data-power="magnet">Buy Magnet</button>
-</div>
-
-<div id="overlay">
-  <h1>Quiq - Runner</h1>
-  <p>Click or Press Jump Key to Start</p>
-  <button id="btnStart">▶ Start</button>
-</div>
+  <div id="overlay">
+    <h1>Quiq - Runner</h1>
+    <p>Click or Press Jump Key</p>
+    <button class="btn" onclick="startGame()">▶ Start</button>
+  </div>
 
 <script>
-(() => {
-  // DOM Elements
-  const canvas = document.getElementById('gameCanvas');
-  const ctx = canvas.getContext('2d');
-  const overlay = document.getElementById('overlay');
-
-  // UI buttons & elements
-  const btnPause = document.getElementById('btnPause');
-  const btnRestart = document.getElementById('btnRestart');
-  const btnSettings = document.getElementById('btnSettings');
-  const btnShop = document.getElementById('btnShop');
-  const btnStart = document.getElementById('btnStart');
-  const btnApplySettings = document.getElementById('btnApplySettings');
-
-  const settingsMenu = document.getElementById('settings');
-  const shopMenu = document.getElementById('shop');
-
-  const difficultySelect = document.getElementById('difficultySelect');
-  const themeToggle = document.getElementById('themeToggle');
-  const colorPlayerInput = document.getElementById('colorPlayer');
-  const colorObstacleInput = document.getElementById('colorObstacle');
-  const audioToggle = document.getElementById('audioToggle');
-
-  const keyJumpInput = document.getElementById('keyJump');
-  const keyDuckInput = document.getElementById('keyDuck');
-  const keyPowerInput = document.getElementById('keyPower');
-  const keyPauseInput = document.getElementById('keyPause');
-  const keyRestartInput = document.getElementById('keyRestart');
-  const keySettingsInput = document.getElementById('keySettings');
-
-  const scoreDisplay = document.getElementById('scoreDisplay');
-  const powerCountsDisplay = document.getElementById('powerCounts');
-
-  // Game Variables
-  let player, obstacles, frameCount, score, highScore, coins, gameStarted, gamePaused, obstacleSpeed, powerUps;
-  let canDoubleJump = false;
-  let magnetActive = false;
-  let audioEnabled = true;
-
-  // Keybindings (default values)
-  let keyBindings = {
-    jump: ' ',
-    duck: 'ArrowDown',
-    power: 'p',
-    pause: null,
-    restart: null,
-    settings: null,
+  const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
+  const S = {
+    themeToggle: document.getElementById('themeToggle'), colorPlayer: document.getElementById('colorPlayer'),
+    colorObstacle: document.getElementById('colorObstacle'), audioToggle: document.getElementById('audioToggle'),
+    keyJump: document.getElementById('keyJump'), keyDuck: document.getElementById('keyDuck'),
+    keyPower: document.getElementById('keyPower'), countShield: document.getElementById('countShield'),
+    countSpeed: document.getElementById('countSpeed'), countDouble: document.getElementById('countDouble'),
+    countDoubleJump: document.getElementById('countDoubleJump'), countMagnet: document.getElementById('countMagnet')
   };
+  let player, obstacles, frameCount, score, highScore, gameStarted, gamePaused, obstacleSpeed, powerUps;
+  let canDoubleJump=false, magnetActive=false;
 
-  // Constants
-  const POWER_UP_COST = 25;
-
-  // Persistent data keys
-  const COOKIE_HIGH_SCORE = 'quiqHighScore';
-  const COOKIE_COINS = 'quiqCoins';
-  const COOKIE_POWERUPS = 'quiqPowerUps';
-
-  // Utility - Cookies
+  // Cookie helpers for persistent high score
   function setCookie(name, value) {
-    const expires = new Date(Date.now() + 365*24*60*60*1000).toUTCString();
-    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+    const expires = new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000).toUTCString();
+    document.cookie = ${name}=${encodeURIComponent(value)}; expires=${expires}; path=/;
   }
 
   function getCookie(name) {
-    const match = document.cookie.match(new RegExp('(^| )'+name+'=([^;]+)'));
-    return match ? decodeURIComponent(match[2]) : null;
+    return document.cookie.split('; ').reduce((r, v) => {
+      const parts = v.split('=');
+      return parts[0] === name ? decodeURIComponent(parts[1]) : r;
+    }, null);
   }
 
-  // Load persistent data
-  function loadData() {
-    highScore = parseInt(getCookie(COOKIE_HIGH_SCORE)) || 0;
-    coins = parseInt(getCookie(COOKIE_COINS)) || 0;
-    let savedPowerUps = getCookie(COOKIE_POWERUPS);
-    powerUps = savedPowerUps ? JSON.parse(savedPowerUps) : {
-      shield: 1,
-      speed: 1,
-      double: 1,
-      doubleJump: 1,
-      magnet: 1,
+  function init(){
+    canvas.width=innerWidth;canvas.height=innerHeight;
+    player={x:50,y:canvas.height-100,w:50,h:50,vy:0,gravity:0.6,jumping:false,ducking:false};
+    obstacles=[];frameCount=0;score=0;obstacleSpeed=+document.getElementById('difficultySelect').value;
+    gameStarted=gamePaused=false;
+    highScore = parseInt(getCookie('highScore')) || 0;
+    powerUps={
+      shield:+S.countShield.value,
+      speed:+S.countSpeed.value,
+      double:+S.countDouble.value,
+      doubleJump:+S.countDoubleJump.value,
+      magnet:+S.countMagnet.value
     };
-  }
-
-  // Save persistent data
-  function saveData() {
-    setCookie(COOKIE_HIGH_SCORE, highScore);
-    setCookie(COOKIE_COINS, coins);
-    setCookie(COOKIE_POWERUPS, JSON.stringify(powerUps));
-  }
-
-  // Init canvas and game state
-  function initGame() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    player = {
-      x: 50,
-      y: canvas.height - 100,
-      w: 50,
-      h: 50,
-      vy: 0,
-      gravity: 0.6,
-      jumping: false,
-      ducking: false,
-    };
-
-    obstacles = [];
-    frameCount = 0;
-    score = 0;
-    obstacleSpeed = parseInt(difficultySelect.value);
-    gameStarted = false;
-    gamePaused = false;
-    canDoubleJump = false;
-    magnetActive = false;
-    audioEnabled = audioToggle.checked;
-
-    updateUI();
+    updateScore();
     updatePowerDisplay();
   }
 
-  // Update score and coins display
-  function updateUI() {
-    scoreDisplay.textContent = `Score: ${score} | High: ${highScore} | Coins: ${coins}`;
+  function updateScore(){
+    document.getElementById('scoreDisplay').textContent=Score: ${score} | High: ${highScore};
+  }
+  function updatePowerDisplay(){
+    document.getElementById('powerCounts').textContent=
+      🛡${powerUps.shield} ⚡${powerUps.speed} ✌️${powerUps.double} 🚀${powerUps.doubleJump} 🧲${powerUps.magnet};
   }
 
-  // Update power-ups display
-  function updatePowerDisplay() {
-    powerCountsDisplay.textContent =
-      `🛡${powerUps.shield} ⚡${powerUps.speed} ✌️${powerUps.double} 🚀${powerUps.doubleJump} 🧲${powerUps.magnet}`;
+  function applySettings(){
+    document.body.setAttribute('data-theme',S.themeToggle.checked?'light':'dark');
+    updatePowerDisplay();
+    toggleSettings();
   }
 
-  // Game functions
-  function startGame() {
-    if (gameStarted) return;
-    gameStarted = true;
-    gamePaused = false;
-    overlay.style.display = 'none';
-    closeMenus();
-    initGame();
-    gameLoop();
+  function startGame(){gameStarted=true;overlay.style.display='none';gameLoop();}
+  function restartGame(){init();overlay.style.display='none';gameLoop();}
+  function togglePause(){if(!gameStarted)return;gamePaused=!gamePaused; if(!gamePaused)gameLoop();}
+  function toggleSettings(){
+    document.getElementById('settings').style.display=
+      document.getElementById('settings').style.display==='none'?'block':'none';
+  }
+  function setDifficulty(v){
+    obstacleSpeed=+v;
+    obstacles.forEach(o=>o.speed=v);
   }
 
-  function restartGame() {
-    initGame();
-    overlay.style.display = 'none';
-    closeMenus();
-    gameStarted = true;
-    gamePaused = false;
-    gameLoop();
+  function createObstacle(){
+    const h=Math.random()*80+30, r=Math.random(), type=r<0.4?'rect':r<0.7?'circle':'bird';
+    obstacles.push({
+      x:canvas.width,
+      y:canvas.height-(type==='rect'?h:(type==='circle'?h+20:120)),
+      w:type==='circle'?40:30,
+      h,
+      type,
+      speed:obstacleSpeed,
+      passed:false,
+      anim:0
+    });
   }
 
-  function togglePause() {
-    if (!gameStarted) return;
-    gamePaused = !gamePaused;
-    if (!gamePaused) {
-      closeMenus();
-      gameLoop();
+  function jump(){
+    if(!player.jumping){
+      player.vy=-15;
+      player.jumping=true;
+      canDoubleJump=true;
     }
-  }
-
-  // Close settings and shop menus
-  function closeMenus() {
-    settingsMenu.style.display = 'none';
-    shopMenu.style.display = 'none';
-  }
-
-  // Toggle Settings menu
-  function toggleSettingsMenu() {
-    if (!gameStarted || gamePaused) {
-      if (settingsMenu.style.display === 'block') {
-        settingsMenu.style.display = 'none';
-      } else {
-        settingsMenu.style.display = 'block';
-        shopMenu.style.display = 'none';
-      }
-    }
-  }
-
-  // Toggle Shop menu
-  function toggleShopMenu() {
-    if (!gameStarted || gamePaused) {
-      if (shopMenu.style.display === 'block') {
-        shopMenu.style.display = 'none';
-      } else {
-        shopMenu.style.display = 'block';
-        settingsMenu.style.display = 'none';
-      }
-    }
-  }
-
-  // Set difficulty
-  difficultySelect.addEventListener('change', () => {
-    obstacleSpeed = parseInt(difficultySelect.value);
-    obstacles.forEach(o => o.speed = obstacleSpeed);
-  });
-
-  // Controls
-  function jump() {
-    if (!player.jumping) {
-      player.vy = -15;
-      player.jumping = true;
-      canDoubleJump = true;
-    } else if (canDoubleJump && powerUps.doubleJump > 0) {
-      player.vy = -15;
+    else if(canDoubleJump && powerUps.doubleJump>0){
+      player.vy=-15;
       powerUps.doubleJump--;
-      canDoubleJump = false;
+      canDoubleJump=false;
       updatePowerDisplay();
-      saveData();
     }
   }
 
-  function duck(on) {
-    player.ducking = on;
+  function duck(on){
+    player.ducking=on;
   }
 
-  function activatePower() {
-    if (powerUps.shield > 0) {
+  function activatePower(){
+    if(powerUps.shield){
       powerUps.shield--;
       updatePowerDisplay();
-      saveData();
       return;
     }
-    if (powerUps.speed > 0) {
+    if(powerUps.speed){
       powerUps.speed--;
-      obstacleSpeed += 3;
-      obstacles.forEach(o => o.speed = obstacleSpeed);
+      obstacleSpeed+=3;
       updatePowerDisplay();
-      saveData();
       return;
     }
-    if (powerUps.double > 0) {
+    if(powerUps.double){
       powerUps.double--;
-      score *= 2;
-      updateUI();
+      updateScore();
+      powerUps.double*=2;
       updatePowerDisplay();
-      saveData();
       return;
     }
-    if (powerUps.magnet > 0) {
+    if(powerUps.magnet){
       powerUps.magnet--;
-      magnetActive = true;
-      setTimeout(() => {
-        magnetActive = false;
-      }, 5000);
+      magnetActive=true;
+      setTimeout(()=>magnetActive=false,5000);
       updatePowerDisplay();
-      saveData();
-      return;
     }
   }
 
-  // Purchase power-ups in shop
-  shopMenu.querySelectorAll('button[data-power]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const powerName = btn.getAttribute('data-power');
-      if (coins >= POWER_UP_COST) {
-        coins -= POWER_UP_COST;
-        powerUps[powerName]++;
-        updateUI();
-        updatePowerDisplay();
-        saveData();
-      } else {
-        alert('Not enough coins!');
-      }
-    });
+  canvas.addEventListener('keydown',e=>{
+    const k=e.key;
+    if(k===S.keyJump.value) jump();
+    if(k===S.keyDuck.value) duck(true);
+    if(k===S.keyPower.value) activatePower();
+  });
+  canvas.addEventListener('keyup',e=>{
+    if(e.key===S.keyDuck.value) duck(false);
+  });
+  window.addEventListener('keydown',e=>canvas.dispatchEvent(new KeyboardEvent('keydown',e)));
+  window.addEventListener('keyup',e=>canvas.dispatchEvent(new KeyboardEvent('keyup',e)));
+
+  canvas.addEventListener('click',()=>{
+    gameStarted ? jump() : startGame();
   });
 
-  // Handle keyboard
-  const keysDown = {};
+  const overlay=document.getElementById('overlay');
 
-  function handleKeyDown(e) {
-    if (e.repeat) return;
-    keysDown[e.key] = true;
+  function gameLoop(){
+    if(!gameStarted||gamePaused) return;
 
-    if (e.key === keyBindings.jump) {
-      jump();
-    }
-    if (e.key === keyBindings.duck) {
-      duck(true);
-    }
-    if (e.key === keyBindings.power) {
-      activatePower();
-    }
-    if (keyBindings.pause && e.key === keyBindings.pause) {
-      togglePause();
-    }
-    if (keyBindings.restart && e.key === keyBindings.restart) {
-      restartGame();
-    }
-    if (keyBindings.settings && e.key === keyBindings.settings) {
-      toggleSettingsMenu();
-    }
-  }
-  function handleKeyUp(e) {
-    keysDown[e.key] = false;
-    if (e.key === keyBindings.duck) {
-      duck(false);
-    }
-  }
-
-  // Game loop
-  function gameLoop() {
-    if (!gameStarted || gamePaused) return;
-
+    ctx.clearRect(0,0,canvas.width,canvas.height);
     frameCount++;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if(frameCount%80===0) createObstacle();
 
-    // Update player physics
-    player.vy += player.gravity;
-    player.y += player.vy;
-
-    // Ground collision
-    if (player.y > canvas.height - player.h - 20) {
-      player.y = canvas.height - player.h - 20;
-      player.vy = 0;
-      player.jumping = false;
-      canDoubleJump = false;
+    // Player movement
+    player.y+=player.vy;
+    player.vy+=player.gravity;
+    if(player.ducking) player.h=30; else player.h=50;
+    if(player.y+player.h>=canvas.height){
+      player.y=canvas.height-player.h;
+      player.jumping=false;
     }
 
-    // Draw player
-    ctx.fillStyle = colorPlayerInput.value;
-    ctx.fillRect(player.x, player.y, player.w, player.h);
+    ctx.fillStyle=S.colorPlayer.value;
+    ctx.fillRect(player.x,player.y,player.w,player.h);
 
-    // Spawn obstacles
-    if (frameCount % 60 === 0) {
-      let size = 30 + Math.random() * 30;
-      obstacles.push({
-        x: canvas.width + size,
-        y: canvas.height - size - 20,
-        w: size,
-        h: size,
-        speed: obstacleSpeed,
+    obstacles=obstacles.filter(o=>{
+      o.x-=o.speed;
+
+      if(!o.passed && o.x + o.w < player.x){
+        score++;
+        if(score > highScore){
+          highScore = score;
+          setCookie('highScore', highScore);
+        }
+        o.passed=true;
+        updateScore();
+      }
+      if(o.x + o.w < 0) return false;
+
+      ctx.fillStyle=S.colorObstacle.value;
+      if(o.type==='rect') ctx.fillRect(o.x,o.y,o.w,o.h);
+      else if(o.type==='circle'){
+        ctx.beginPath();
+        ctx.arc(o.x,o.y+o.h/2,o.w/2,0,2*Math.PI);
+        ctx.fill();
+      }
+      else{
+        ctx.beginPath();
+        ctx.moveTo(o.x,o.y+o.h/2);
+        ctx.lineTo(o.x+o.w,o.y+(o.anim%2?o.h/4:o.h*3/4));
+        ctx.lineTo(o.x+o.w,o.y+(o.anim%2?o.h*3/4:o.h/4));
+        ctx.fill();
+        o.anim++;
+      }
+      return true;
+    });
+
+    // Magnet collects circles
+    if(magnetActive){
+      obstacles.forEach((o,i)=>{
+        if(o.type==='circle' && Math.hypot((o.x - player.x),(o.y - player.y)) < 200){
+          score++;
+          obstacles.splice(i,1);
+          updateScore();
+        }
       });
     }
 
-    // Update and draw obstacles
-    for (let i = obstacles.length -1; i >= 0; i--) {
-      let obs = obstacles[i];
-      obs.x -= obs.speed;
-      ctx.fillStyle = colorObstacleInput.value;
-      ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+    // Collision
+    for(let o of obstacles){
+      if(player.x < o.x + o.w &&
+         player.x + player.w > o.x &&
+         player.y < o.y + o.h &&
+         player.y + player.h > o.y){
 
-      // Collision with player
-      if (
-        player.x < obs.x + obs.w &&
-        player.x + player.w > obs.x &&
-        player.y < obs.y + obs.h &&
-        player.y + player.h > obs.y
-      ) {
-        // If player has shield power-up, shield protects and lose one shield
-        if (powerUps.shield > 0) {
+        if(powerUps.shield){
           powerUps.shield--;
           updatePowerDisplay();
-          saveData();
-          obstacles.splice(i, 1);
-          continue;
+          obstacles = obstacles.filter(x => x !== o);
+          break;
         }
-        // Game over
         gameOver();
         return;
-      }
-
-      // Remove offscreen obstacles
-      if (obs.x + obs.w < 0) {
-        obstacles.splice(i, 1);
-        score++;
-        coins++;
-        updateUI();
-        saveData();
       }
     }
 
     requestAnimationFrame(gameLoop);
   }
 
-  // Game Over
-  function gameOver() {
-    gameStarted = false;
-    overlay.querySelector('h1').textContent = 'Game Over';
-    overlay.querySelector('p').textContent = `Final Score: ${score} | Coins: ${coins}`;
-    overlay.style.display = 'flex';
-
-    if (score > highScore) {
-      highScore = score;
-      saveData();
-    }
+  function gameOver(){
+    gameStarted=false;
+    overlay.innerHTML=
+      <h1>Game Over</h1>
+      <p>Score: ${score}</p>
+      <button class="btn" onclick="restartGame()">🔁 Restart</button>
+    ;
+    overlay.style.display='flex';
   }
 
-  // Drag functionality for settings and shop
-  function makeDraggable(element) {
-    let offsetX, offsetY, dragging = false;
-
-    element.addEventListener('mousedown', (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'SELECT' || e.target.tagName === 'LABEL') return;
-      dragging = true;
-      offsetX = e.clientX - element.offsetLeft;
-      offsetY = e.clientY - element.offsetTop;
-      element.style.cursor = 'grabbing';
-      e.preventDefault();
-    });
-
-    document.addEventListener('mouseup', () => {
-      dragging = false;
-      element.style.cursor = 'move';
-    });
-
-    document.addEventListener('mousemove', (e) => {
-      if (!dragging) return;
-      let x = e.clientX - offsetX;
-      let y = e.clientY - offsetY;
-      // Clamp inside viewport
-      x = Math.min(window.innerWidth - element.offsetWidth, Math.max(0, x));
-      y = Math.min(window.innerHeight - element.offsetHeight, Math.max(0, y));
-      element.style.left = x + 'px';
-      element.style.top = y + 'px';
-    });
-  }
-
-  makeDraggable(settingsMenu);
-  makeDraggable(shopMenu);
-
-  // Save settings on apply
-  btnApplySettings.addEventListener('click', () => {
-    // Update keybindings
-    keyBindings.jump = keyJumpInput.value || keyBindings.jump;
-    keyBindings.duck = keyDuckInput.value || keyBindings.duck;
-    keyBindings.power = keyPowerInput.value || keyBindings.power;
-    keyBindings.pause = keyPauseInput.value || null;
-    keyBindings.restart = keyRestartInput.value || null;
-    keyBindings.settings = keySettingsInput.value || null;
-
-    // Update theme
-    document.body.setAttribute('data-theme', themeToggle.checked ? 'light' : 'dark');
-
-    // Audio toggle
-    audioEnabled = audioToggle.checked;
-
-    settingsMenu.style.display = 'none';
-  });
-
-  // Event listeners for buttons
-  btnPause.addEventListener('click', () => {
-    togglePause();
-    // Close menus when running
-    if (!gamePaused) closeMenus();
-  });
-
-  btnRestart.addEventListener('click', () => {
-    restartGame();
-  });
-
-  btnSettings.addEventListener('click', () => {
-    toggleSettingsMenu();
-  });
-
-  btnShop.addEventListener('click', () => {
-    toggleShopMenu();
-  });
-
-  btnStart.addEventListener('click', startGame);
-
-  // Close settings/shop if game running and not paused
-  function handleGameStateMenus() {
-    if (gameStarted && !gamePaused) {
-      closeMenus();
-    }
-  }
-
-  // Click canvas to start game from overlay
-  canvas.addEventListener('click', () => {
-    if (!gameStarted) startGame();
-  });
-
-  // Keyboard listeners
-  window.addEventListener('keydown', handleKeyDown);
-  window.addEventListener('keyup', handleKeyUp);
-
-  // On resize, update canvas size
-  window.addEventListener('resize', () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  });
-
-  // Initialize game & load data on page load
-  loadData();
-  initGame();
-  updateUI();
-  updatePowerDisplay();
-
-  // Periodically close menus if game is running (not paused)
-  setInterval(handleGameStateMenus, 500);
-
-})();
+  init();
 </script>
-
 </body>
 </html>
