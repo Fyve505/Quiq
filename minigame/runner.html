@@ -7,27 +7,27 @@
     * { box-sizing: border-box; }
     body { margin:0; background:var(--bg); color:var(--fg); font-family:'Segoe UI'; overflow:hidden }
     canvas { background:var(--bg-grad); display:block; width:100vw;height:100vh }
-    #ui,#settings,#shop{position:absolute;z-index:10;padding:15px;border-radius:10px;background:rgba(0,0,0,0.5);backdrop-filter:blur(5px)}
+    #ui,#settings,#shopBox{position:absolute;z-index:10;padding:15px;border-radius:10px;background:rgba(0,0,0,0.5);backdrop-filter:blur(5px)}
     #ui{top:20px;left:20px}
     #settings{top:20px;right:20px;width:320px;max-height:85vh;overflow:auto;display:none}
-    #shop{top:100px;left:100px;width:300px;max-height:80vh;overflow:auto;display:none;cursor:move}
+    #shopBox{top:140px;right:20px;width:300px;display:none}
     .btn,select,label,input[type=color],input[type=number],input[type=text]{margin:8px 0;width:100%}
     .btn{padding:8px;border:none;border-radius:6px;background:var(--btn-bg);color:var(--btn-fg);cursor:pointer}
     input[type=color]{padding:0;height:28px}
-    .min-btn{float:right;background:transparent;color:inherit;border:none;cursor:pointer;margin-top:-10px}
     :root {--bg:#1e1e1e;--fg:#eee;--bg-grad:linear-gradient(to top,#1c1c1c,#2a2a2a);--btn-bg:#333;--btn-fg:#eee}
     [data-theme=light]{--bg:#fafafa;--fg:#111;--bg-grad:linear-gradient(to top,#fff,#ddd);--btn-bg:#ddd;--btn-fg:#111}
     #overlay{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);flex-direction:column;z-index:9}
     #overlay .btn{max-width:200px}
+    #coinDisplay{margin-top:10px;font-weight:bold}
   </style>
 </head>
 <body data-theme="dark">
-  <canvas id="gameCanvas" tabindex="0"></canvas>
+  <canvas id="gameCanvas"></canvas>
   <div id="ui">
     <button class="btn" onclick="togglePause()">⏯ Pause</button>
     <button class="btn" onclick="restartGame()">🔁 Restart</button>
     <button class="btn" onclick="toggleSettings()">⚙️ Settings</button>
-    <button class="btn" onclick="toggleShop()">🛒 Shop</button>
+    <button class="btn" onclick="toggleShop()">🛍 Shop</button>
     <label>Difficulty:
       <select id="difficultySelect" onchange="setDifficulty(this.value)">
         <option value="5">Easy</option>
@@ -36,12 +36,11 @@
       </select>
     </label>
     <div id="scoreDisplay">Score: 0 | High: 0</div>
-    <div id="coinDisplay">🪙 Coins: 0</div>
     <div>🎁 Power‑Ups: <span id="powerCounts"></span></div>
+    <div id="coinDisplay">🪙 Coins: 0</div>
   </div>
 
   <div id="settings">
-    <button class="min-btn" onclick="toggleSettings()">_</button>
     <h3>Settings</h3>
     <label><input type="checkbox" id="themeToggle"> Light Theme</label>
     <label>Player Color: <input type="color" id="colorPlayer" value="#1E90FF"></label>
@@ -51,22 +50,23 @@
     <label>Jump: <input type="text" id="keyJump" value=" " maxlength="1"></label>
     <label>Duck: <input type="text" id="keyDuck" value="ArrowDown" maxlength="1"></label>
     <label>Power: <input type="text" id="keyPower" value="p" maxlength="1"></label>
-    <label>Pause: <input type="text" id="keyPause" maxlength="1"></label>
-    <label>Restart: <input type="text" id="keyRestart" maxlength="1"></label>
-    <label>Settings: <input type="text" id="keySettings" maxlength="1"></label>
     <hr><h4>Power-Ups</h4>
-    <label>Shield: <input type="number" id="countShield" min=0 max=5 value=1></label>
-    <label>Speed Boost: <input type="number" id="countSpeed" min=0 max=5 value=1></label>
-    <label>Double Points: <input type="number" id="countDouble" min=0 max=5 value=1></label>
-    <label>Double Jump: <input type="number" id="countDoubleJump" min=0 max=5 value=1></label>
-    <label>Magnet: <input type="number" id="countMagnet" min=0 max=5 value=1></label>
+    <label>Shield: <input type="number" id="countShield" min=0 max=99 value=1></label>
+    <label>Speed Boost: <input type="number" id="countSpeed" min=0 max=99 value=1></label>
+    <label>Double Points: <input type="number" id="countDouble" min=0 max=99 value=1></label>
+    <label>Double Jump: <input type="number" id="countDoubleJump" min=0 max=99 value=1></label>
+    <label>Magnet: <input type="number" id="countMagnet" min=0 max=99 value=1></label>
     <button class="btn" onclick="applySettings()">Apply Settings</button>
   </div>
 
-  <div id="shop">
-    <button class="min-btn" onclick="toggleShop()">_</button>
-    <h3>Shop</h3>
-    <p>Coming soon: buy power-ups with coins!</p>
+  <div id="shopBox">
+    <strong>🛍 Shop</strong>
+    <p>Buy Power-Ups (25🪙 each):</p>
+    <button class="btn" onclick="buyPower('shield')">Buy 🛡 Shield</button>
+    <button class="btn" onclick="buyPower('speed')">Buy ⚡ Speed</button>
+    <button class="btn" onclick="buyPower('double')">Buy ✌️ Double Points</button>
+    <button class="btn" onclick="buyPower('doubleJump')">Buy 🚀 Double Jump</button>
+    <button class="btn" onclick="buyPower('magnet')">Buy 🧲 Magnet</button>
   </div>
 
   <div id="overlay">
@@ -75,42 +75,91 @@
     <button class="btn" onclick="startGame()">▶ Start</button>
   </div>
 
-  <script>
-    // Add to existing init()
-    let coinCount = 0;
+<script>
+const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
+const S = {
+  themeToggle: document.getElementById('themeToggle'), colorPlayer: document.getElementById('colorPlayer'),
+  colorObstacle: document.getElementById('colorObstacle'), audioToggle: document.getElementById('audioToggle'),
+  keyJump: document.getElementById('keyJump'), keyDuck: document.getElementById('keyDuck'),
+  keyPower: document.getElementById('keyPower'), countShield: document.getElementById('countShield'),
+  countSpeed: document.getElementById('countSpeed'), countDouble: document.getElementById('countDouble'),
+  countDoubleJump: document.getElementById('countDoubleJump'), countMagnet: document.getElementById('countMagnet')
+};
+let player, obstacles, frameCount, score, highScore, gameStarted, gamePaused, obstacleSpeed, powerUps;
+let canDoubleJump = false, magnetActive = false, coinCount = 0;
+const coinDisplay = document.getElementById('coinDisplay');
+const overlay = document.getElementById('overlay');
+const shopBox = document.getElementById('shopBox');
 
-    function updateCoinDisplay() {
-      document.getElementById('coinDisplay').textContent = `🪙 Coins: ${coinCount}`;
-    }
-
-    function toggleShop() {
-      const shop = document.getElementById('shop');
-      shop.style.display = shop.style.display === 'none' ? 'block' : 'none';
-    }
-
-    // Drag shop window
-    const shopBox = document.getElementById('shop');
-    shopBox.addEventListener('mousedown', function(e) {
-      let offsetX = e.clientX - shopBox.offsetLeft;
-      let offsetY = e.clientY - shopBox.offsetTop;
-      function mouseMoveHandler(e) {
-        shopBox.style.left = `${e.clientX - offsetX}px`;
-        shopBox.style.top = `${e.clientY - offsetY}px`;
-      }
-      function mouseUpHandler() {
-        document.removeEventListener('mousemove', mouseMoveHandler);
-        document.removeEventListener('mouseup', mouseUpHandler);
-      }
-      document.addEventListener('mousemove', mouseMoveHandler);
-      document.addEventListener('mouseup', mouseUpHandler);
-    });
-
-    // Global keybinds
-    window.addEventListener('keydown', (e) => {
-      if (e.key === S.keyPause?.value) togglePause();
-      if (e.key === S.keyRestart?.value) restartGame();
-      if (e.key === S.keySettings?.value) toggleSettings();
-    });
-  </script>
+function setCookie(name, value) {
+  const expires = new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+}
+function getCookie(name) {
+  return document.cookie.split('; ').reduce((r, v) => {
+    const parts = v.split('=');
+    return parts[0] === name ? decodeURIComponent(parts[1]) : r;
+  }, null);
+}
+function loadPowerUps() {
+  try {
+    return JSON.parse(getCookie('powerUps') || '{}');
+  } catch { return {}; }
+}
+function savePowerUps() {
+  setCookie('powerUps', JSON.stringify(powerUps));
+}
+function saveCoins() {
+  setCookie("coinCount", coinCount);
+}
+function loadCoins() {
+  const c = parseInt(getCookie("coinCount"));
+  coinCount = isNaN(c) ? 0 : c;
+}
+function updateCoinDisplay() {
+  coinDisplay.textContent = `🪙 Coins: ${coinCount}`;
+  saveCoins();
+}
+function updatePowerDisplay() {
+  document.getElementById('powerCounts').textContent =
+    `🛡${powerUps.shield} ⚡${powerUps.speed} ✌️${powerUps.double} 🚀${powerUps.doubleJump} 🪢${powerUps.magnet}`;
+  savePowerUps();
+}
+function buyPower(type) {
+  if (coinCount < 25) return alert("Not enough coins!");
+  coinCount -= 25;
+  powerUps[type]++;
+  updateCoinDisplay();
+  updatePowerDisplay();
+}
+function toggleShop() {
+  shopBox.style.display = shopBox.style.display === 'none' ? 'block' : 'none';
+}
+function applySettings() {
+  document.body.setAttribute('data-theme', S.themeToggle.checked ? 'light' : 'dark');
+  powerUps = {
+    shield: +S.countShield.value,
+    speed: +S.countSpeed.value,
+    double: +S.countDouble.value,
+    doubleJump: +S.countDoubleJump.value,
+    magnet: +S.countMagnet.value
+  };
+  updatePowerDisplay();
+  toggleSettings();
+}
+function init() {
+  canvas.width = innerWidth; canvas.height = innerHeight;
+  player = { x: 50, y: canvas.height - 100, w: 50, h: 50, vy: 0, gravity: 0.6, jumping: false, ducking: false };
+  obstacles = []; frameCount = 0; score = 0; obstacleSpeed = +document.getElementById('difficultySelect').value;
+  gameStarted = gamePaused = false;
+  highScore = parseInt(getCookie('highScore')) || 0;
+  loadCoins();
+  powerUps = { shield: 0, speed: 0, double: 0, doubleJump: 0, magnet: 0, ...loadPowerUps() };
+  updateCoinDisplay();
+  updateScore();
+  updatePowerDisplay();
+}
+// Rest of your functions like startGame(), restartGame(), gameLoop(), jump(), duck(), etc.
+</script>
 </body>
 </html>
