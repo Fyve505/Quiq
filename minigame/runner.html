@@ -5,184 +5,238 @@
   <title>Runner - Quiq</title>
   <style>
     * { box-sizing: border-box; }
-    body { margin:0; background:#1e1e1e; color:#eee; font-family:'Segoe UI'; overflow:hidden }
-    canvas { background:linear-gradient(to top,#1c1c1c,#2a2a2a); display:block; width:100vw;height:100vh }
-    #ui,#settings,#shopBox{position:absolute;z-index:10;padding:15px;border-radius:10px;background:rgba(0,0,0,0.5);backdrop-filter:blur(5px)}
+    body { margin:0; background:var(--bg); color:var(--fg); font-family:'Segoe UI'; overflow:hidden }
+    canvas { background:var(--bg-grad); display:block; width:100vw;height:100vh }
+    #ui,#settings,#shop{position:absolute;z-index:10;padding:15px;border-radius:10px;background:rgba(0,0,0,0.5);backdrop-filter:blur(5px)}
     #ui{top:20px;left:20px}
     #settings{top:20px;right:20px;width:320px;max-height:85vh;overflow:auto;display:none}
-    #shopBox{top:100px;left:50%;transform:translateX(-50%);width:250px;display:none}
+    #shop{top:80px;right:20px;width:280px;max-height:70vh;overflow:auto;display:none}
     .btn,select,label,input[type=color],input[type=number],input[type=text]{margin:8px 0;width:100%}
-    .btn{padding:8px;border:none;border-radius:6px;background:#333;color:#eee;cursor:pointer}
+    .btn{padding:8px;border:none;border-radius:6px;background:var(--btn-bg);color:var(--btn-fg);cursor:pointer}
     input[type=color]{padding:0;height:28px}
+    :root {--bg:#1e1e1e;--fg:#eee;--bg-grad:linear-gradient(to top,#1c1c1c,#2a2a2a);--btn-bg:#333;--btn-fg:#eee}
+    [data-theme=light]{--bg:#fafafa;--fg:#111;--bg-grad:linear-gradient(to top,#fff,#ddd);--btn-bg:#ddd;--btn-fg:#111}
     #overlay{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);flex-direction:column;z-index:9}
     #overlay .btn{max-width:200px}
   </style>
 </head>
-<body>
-<canvas id="gameCanvas" tabindex="0"></canvas>
-<div id="ui">
-  <button class="btn" onclick="togglePause()">⏯ Pause</button>
-  <button class="btn" onclick="restartGame()">🔁 Restart</button>
-  <button class="btn" onclick="toggleSettings()">⚙️ Settings</button>
-  <button class="btn" onclick="toggleShop()">🛍 Shop</button>
-  <div id="scoreDisplay">Score: 0 | High: 0</div>
-  <div>🎁 Power‑Ups: <span id="powerCounts"></span></div>
-  <div>🪙 Coins: <span id="coinDisplay">0</span></div>
-</div>
-<div id="settings">
-  <h3>Settings</h3>
-  <label><input type="checkbox" id="themeToggle"> Light Theme</label>
-  <label>Player Color: <input type="color" id="colorPlayer" value="#1E90FF"></label>
-  <label>Obstacle Color: <input type="color" id="colorObstacle" value="#DC143C"></label>
-  <label><input type="checkbox" id="audioToggle" checked> Sound FX</label>
-  <hr><h4>Keybindings</h4>
-  <label>Jump: <input type="text" id="keyJump" value=" " maxlength="1"></label>
-  <label>Duck: <input type="text" id="keyDuck" value="ArrowDown"></label>
-  <label>Power: <input type="text" id="keyPower" value="p"></label>
-  <label>Pause: <input type="text" id="keyPause" value=""></label>
-  <label>Restart: <input type="text" id="keyRestart" value=""></label>
-  <label>Settings: <input type="text" id="keySettings" value=""></label>
-</div>
-<div id="shopBox">
-  <strong>🛍 Shop</strong>
-  <p>25🪙 per power-up</p>
-  <button class="btn" onclick="buyPower('shield')">Buy 🛡 Shield</button>
-  <button class="btn" onclick="buyPower('speed')">Buy ⚡ Speed</button>
-  <button class="btn" onclick="buyPower('double')">Buy ✌️ Double</button>
-  <button class="btn" onclick="buyPower('doubleJump')">Buy 🚀 Double Jump</button>
-  <button class="btn" onclick="buyPower('magnet')">Buy 🧲 Magnet</button>
-</div>
-<div id="overlay">
-  <h1>Quiq - Runner</h1>
-  <p>Click or Press Jump Key</p>
-  <button class="btn" onclick="startGame()">▶ Start</button>
-</div>
+<body data-theme="dark">
+  <canvas id="gameCanvas" tabindex="0"></canvas>
+  <div id="ui">
+    <button class="btn" onclick="togglePause()">⏯ Pause</button>
+    <button class="btn" onclick="restartGame()">🔁 Restart</button>
+    <button class="btn" onclick="toggleSettings()">⚙️ Settings</button>
+    <button class="btn" onclick="toggleShop()">🛒 Shop</button>
+    <label>Difficulty:
+      <select id="difficultySelect" onchange="setDifficulty(this.value)">
+        <option value="5">Easy</option>
+        <option value="8" selected>Medium</option>
+        <option value="12">Hard</option>
+      </select>
+    </label>
+    <div id="scoreDisplay">Score: 0 | High: 0</div>
+    <div>🎁 Power‑Ups: <span id="powerCounts"></span></div>
+    <div>💰 Coins: <span id="coinDisplay">0</span></div>
+  </div>
+
+  <div id="settings">
+    <h3>Settings</h3>
+    <label><input type="checkbox" id="themeToggle"> Light Theme</label>
+    <label>Player Color: <input type="color" id="colorPlayer" value="#1E90FF"></label>
+    <label>Obstacle Color: <input type="color" id="colorObstacle" value="#DC143C"></label>
+    <label><input type="checkbox" id="audioToggle" checked> Sound FX</label>
+    <hr><h4>Keybindings</h4>
+    <label>Jump: <input type="text" id="keyJump" value=" " maxlength="1"></label>
+    <label>Duck: <input type="text" id="keyDuck" value="ArrowDown" maxlength="12"></label>
+    <label>Power: <input type="text" id="keyPower" value="p" maxlength="12"></label>
+    <label>Pause: <input type="text" id="keyPause" value="Escape" maxlength="12"></label>
+    <label>Restart: <input type="text" id="keyRestart" value="r" maxlength="12"></label>
+    <label>Settings: <input type="text" id="keySettings" value="s" maxlength="12"></label>
+    <button class="btn" onclick="applySettings()">Apply Settings</button>
+  </div>
+
+  <div id="shop">
+    <h3>Shop (25 💰 per item)</h3>
+    <button class="btn" onclick="buyPower('shield')">🛡 Shield</button>
+    <button class="btn" onclick="buyPower('speed')">⚡ Speed Boost</button>
+    <button class="btn" onclick="buyPower('double')">✌️ Double Points</button>
+    <button class="btn" onclick="buyPower('doubleJump')">🚀 Double Jump</button>
+    <button class="btn" onclick="buyPower('magnet')">🧲 Magnet</button>
+    <button class="btn" onclick="toggleShop()">Close</button>
+  </div>
+
+  <div id="overlay">
+    <h1>Quiq - Runner</h1>
+    <p>Click or Press Jump Key</p>
+    <button class="btn" onclick="startGame()">▶ Start</button>
+  </div>
+
 <script>
-  const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
-  const S = {
-    themeToggle: document.getElementById('themeToggle'), colorPlayer: document.getElementById('colorPlayer'),
-    colorObstacle: document.getElementById('colorObstacle'), audioToggle: document.getElementById('audioToggle'),
-    keyJump: document.getElementById('keyJump'), keyDuck: document.getElementById('keyDuck'),
-    keyPower: document.getElementById('keyPower'), keyPause: document.getElementById('keyPause'),
-    keyRestart: document.getElementById('keyRestart'), keySettings: document.getElementById('keySettings')
-  };
-  let player, obstacles, frameCount, score, highScore, gameStarted = false, gamePaused = false, obstacleSpeed;
-  let powerUps = {}, coinCount = 0, canDoubleJump = false, magnetActive = false;
+const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
+const S = {
+  themeToggle: document.getElementById('themeToggle'), colorPlayer: document.getElementById('colorPlayer'),
+  colorObstacle: document.getElementById('colorObstacle'), audioToggle: document.getElementById('audioToggle'),
+  keyJump: document.getElementById('keyJump'), keyDuck: document.getElementById('keyDuck'),
+  keyPower: document.getElementById('keyPower'), keyPause: document.getElementById('keyPause'),
+  keyRestart: document.getElementById('keyRestart'), keySettings: document.getElementById('keySettings')
+};
+let player, obstacles, frameCount, score, highScore, gameStarted, gamePaused, obstacleSpeed, powerUps;
+let canDoubleJump=false, magnetActive=false, coins = 0;
 
-  const getCookie = (name) => document.cookie.split('; ').reduce((r, v) => {
-    const parts = v.split('='); return parts[0] === name ? decodeURIComponent(parts[1]) : r;
+function setCookie(name, value) {
+  const expires = new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+}
+
+function getCookie(name) {
+  return document.cookie.split('; ').reduce((r, v) => {
+    const parts = v.split('=');
+    return parts[0] === name ? decodeURIComponent(parts[1]) : r;
   }, null);
-  const setCookie = (name, value) => {
-    const expires = new Date(Date.now() + 100*365*24*60*60*1000).toUTCString();
-    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+}
+
+function init(){
+  canvas.width=innerWidth; canvas.height=innerHeight;
+  player={x:50,y:canvas.height-100,w:50,h:50,vy:0,gravity:0.6,jumping:false,ducking:false};
+  obstacles=[]; frameCount=0; score=0; obstacleSpeed=+document.getElementById('difficultySelect').value;
+  gameStarted=gamePaused=false;
+  highScore = parseInt(getCookie('highScore')) || 0;
+  coins = parseInt(getCookie('coins')) || 0;
+  powerUps={
+    shield:parseInt(getCookie('shield')) || 0,
+    speed:parseInt(getCookie('speed')) || 0,
+    double:parseInt(getCookie('double')) || 0,
+    doubleJump:parseInt(getCookie('doubleJump')) || 0,
+    magnet:parseInt(getCookie('magnet')) || 0
   };
-
-  function loadData() {
-    coinCount = parseInt(getCookie('coins')) || 0;
-    highScore = parseInt(getCookie('highScore')) || 0;
-    powerUps = JSON.parse(getCookie('powerUps') || '{}');
-    ['shield','speed','double','doubleJump','magnet'].forEach(p=>powerUps[p]=powerUps[p]||0);
-  }
-
-  function saveData() {
-    setCookie('coins', coinCount);
-    setCookie('highScore', highScore);
-    setCookie('powerUps', JSON.stringify(powerUps));
-  }
-
-  function updateCoinDisplay() {
-    document.getElementById('coinDisplay').textContent = coinCount;
-  }
-
-  function updateScore() {
-    document.getElementById('scoreDisplay').textContent = `Score: ${score} | High: ${highScore}`;
-  }
-
-  function updatePowerDisplay() {
-    document.getElementById('powerCounts').textContent =
-      `🛡${powerUps.shield} ⚡${powerUps.speed} ✌️${powerUps.double} 🚀${powerUps.doubleJump} 🧲${powerUps.magnet}`;
-  }
-
-  function buyPower(type) {
-    if (coinCount < 25) return alert("Not enough coins!");
-    coinCount -= 25;
-    powerUps[type]++;
-    updateCoinDisplay(); updatePowerDisplay(); saveData();
-  }
-
-  function toggleShop() {
-    const box = document.getElementById('shopBox');
-    box.style.display = box.style.display === 'none' ? 'block' : 'none';
-  }
-
-  function toggleSettings() {
-    const s = document.getElementById('settings');
-    s.style.display = s.style.display === 'none' ? 'block' : 'none';
-  }
-
-  function togglePause() { if (!gameStarted) return; gamePaused = !gamePaused; if (!gamePaused) gameLoop(); }
-  function restartGame() { init(); document.getElementById('overlay').style.display = 'none'; gameLoop(); }
-  function startGame() { gameStarted = true; document.getElementById('overlay').style.display = 'none'; gameLoop(); }
-
-  window.addEventListener('keydown', e => {
-    if (e.key === S.keyJump.value) jump();
-    if (e.key === S.keyDuck.value) duck(true);
-    if (e.key === S.keyPower.value) activatePower();
-    if (e.key === S.keyPause.value) togglePause();
-    if (e.key === S.keyRestart.value) restartGame();
-    if (e.key === S.keySettings.value) toggleSettings();
+  updateScore(); updatePowerDisplay();
+}
+function updateScore(){
+  document.getElementById('scoreDisplay').textContent=`Score: ${score} | High: ${highScore}`;
+}
+function updatePowerDisplay(){
+  document.getElementById('powerCounts').textContent=
+    `🛡${powerUps.shield} ⚡${powerUps.speed} ✌️${powerUps.double} 🚀${powerUps.doubleJump} 🧲${powerUps.magnet}`;
+  document.getElementById('coinDisplay').textContent = coins;
+  for (let key in powerUps) setCookie(key, powerUps[key]);
+  setCookie('coins', coins);
+}
+function applySettings(){
+  document.body.setAttribute('data-theme',S.themeToggle.checked?'light':'dark');
+  updatePowerDisplay(); toggleSettings();
+}
+function togglePause(){if(!gameStarted)return;gamePaused=!gamePaused;if(!gamePaused)gameLoop();}
+function restartGame(){init();overlay.style.display='none';gameLoop();}
+function toggleSettings(){document.getElementById('settings').style.display =
+  document.getElementById('settings').style.display==='none'?'block':'none';}
+function toggleShop(){document.getElementById('shop').style.display =
+  document.getElementById('shop').style.display==='none'?'block':'none';}
+function setDifficulty(v){obstacleSpeed=+v; obstacles.forEach(o=>o.speed=v);}
+function startGame(){gameStarted=true;overlay.style.display='none';gameLoop();}
+function createObstacle(){
+  const h=Math.random()*80+30, r=Math.random(), type=r<0.4?'rect':r<0.7?'circle':'bird';
+  obstacles.push({
+    x:canvas.width, y:canvas.height-(type==='rect'?h:(type==='circle'?h+20:120)),
+    w:type==='circle'?40:30, h, type, speed:obstacleSpeed, passed:false, anim:0
   });
-  window.addEventListener('keyup', e => { if (e.key === S.keyDuck.value) duck(false); });
+}
+function jump(){
+  if(!player.jumping){
+    player.vy=-15; player.jumping=true; canDoubleJump=true;
+  }
+  else if(canDoubleJump && powerUps.doubleJump>0){
+    player.vy=-15; powerUps.doubleJump--; canDoubleJump=false; updatePowerDisplay();
+  }
+}
+function duck(on){player.ducking=on;}
+function activatePower(){
+  if(powerUps.shield){powerUps.shield--; updatePowerDisplay(); return;}
+  if(powerUps.speed){powerUps.speed--; obstacleSpeed+=3; updatePowerDisplay(); return;}
+  if(powerUps.double){powerUps.double--; score*=2; updateScore(); updatePowerDisplay(); return;}
+  if(powerUps.magnet){powerUps.magnet--; magnetActive=true; setTimeout(()=>magnetActive=false,5000); updatePowerDisplay();}
+}
+function buyPower(type){
+  if(coins>=25){
+    coins-=25;
+    powerUps[type]++; updatePowerDisplay();
+  } else {
+    alert("Not enough coins!");
+  }
+}
+function gameOver(){
+  gameStarted=false;
+  overlay.innerHTML=`<h1>Game Over</h1><p>Score: ${score}</p><button class="btn" onclick="restartGame()">🔁 Restart</button>`;
+  overlay.style.display='flex';
+}
+function gameLoop(){
+  if(!gameStarted||gamePaused) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height); frameCount++;
+  if(frameCount%80===0) createObstacle();
 
-  function init() {
-    canvas.width = innerWidth;
-    canvas.height = innerHeight;
-    player = {x:50,y:canvas.height-100,w:50,h:50,vy:0,gravity:0.6,jumping:false,ducking:false};
-    obstacles=[];frameCount=0;score=0;
-    loadData(); updatePowerDisplay(); updateCoinDisplay(); updateScore();
-    obstacleSpeed = 8;
+  player.y+=player.vy; player.vy+=player.gravity;
+  if(player.ducking) player.h=30; else player.h=50;
+  if(player.y+player.h>=canvas.height){
+    player.y=canvas.height-player.h; player.jumping=false;
+  }
+  ctx.fillStyle=S.colorPlayer.value; ctx.fillRect(player.x,player.y,player.w,player.h);
+
+  obstacles=obstacles.filter(o=>{
+    o.x-=o.speed;
+    if(!o.passed && o.x + o.w < player.x){
+      score++;
+      if(o.type==='circle'){ coins+=1; }
+      if(score > highScore){ highScore = score; setCookie('highScore', highScore); }
+      o.passed=true; updateScore(); updatePowerDisplay();
+    }
+    if(o.x + o.w < 0) return false;
+    ctx.fillStyle=S.colorObstacle.value;
+    if(o.type==='rect') ctx.fillRect(o.x,o.y,o.w,o.h);
+    else if(o.type==='circle'){
+      ctx.beginPath(); ctx.arc(o.x,o.y+o.h/2,o.w/2,0,2*Math.PI); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.moveTo(o.x,o.y+o.h/2);
+      ctx.lineTo(o.x+o.w,o.y+(o.anim%2?o.h/4:o.h*3/4));
+      ctx.lineTo(o.x+o.w,o.y+(o.anim%2?o.h*3/4:o.h/4)); ctx.fill(); o.anim++;
+    }
+    return true;
+  });
+
+  if(magnetActive){
+    obstacles.forEach((o,i)=>{
+      if(o.type==='circle' && Math.hypot((o.x - player.x),(o.y - player.y)) < 200){
+        coins++; score++; obstacles.splice(i,1); updateScore(); updatePowerDisplay();
+      }
+    });
   }
 
-  function jump() {
-    if (!player.jumping) { player.vy = -15; player.jumping = true; canDoubleJump = true; }
-    else if (canDoubleJump && powerUps.doubleJump > 0) {
-      player.vy = -15; powerUps.doubleJump--; canDoubleJump = false; updatePowerDisplay(); saveData();
+  for(let o of obstacles){
+    if(player.x < o.x + o.w && player.x + player.w > o.x &&
+       player.y < o.y + o.h && player.y + player.h > o.y){
+      if(powerUps.shield){powerUps.shield--; updatePowerDisplay(); obstacles = obstacles.filter(x => x !== o); break;}
+      gameOver(); return;
     }
   }
+  requestAnimationFrame(gameLoop);
+}
 
-  function duck(on) { player.ducking = on; }
-
-  function activatePower() {
-    if (powerUps.shield) { powerUps.shield--; updatePowerDisplay(); saveData(); return; }
-    if (powerUps.speed) { powerUps.speed--; obstacleSpeed += 3; updatePowerDisplay(); saveData(); return; }
-    if (powerUps.double) { powerUps.double--; score *= 2; updatePowerDisplay(); saveData(); updateScore(); return; }
-    if (powerUps.magnet) {
-      powerUps.magnet--; magnetActive = true; setTimeout(()=>magnetActive=false,5000);
-      updatePowerDisplay(); saveData();
-    }
-  }
-
-  function gameLoop() {
-    if (!gameStarted || gamePaused) return;
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    frameCount++;
-
-    // game logic goes here... including collision, coin gain, etc
-
-    requestAnimationFrame(gameLoop);
-  }
-
-  function gameOver() {
-    gameStarted = false;
-    document.getElementById('overlay').innerHTML = `
-      <h1>Game Over</h1>
-      <p>Score: ${score}</p>
-      <button class="btn" onclick="restartGame()">🔁 Restart</button>`;
-    document.getElementById('overlay').style.display = 'flex';
-    saveData();
-  }
-
-  init();
+canvas.focus();
+canvas.addEventListener('keydown',e=>{
+  const k=e.key;
+  if(k===S.keyJump.value) jump();
+  if(k===S.keyDuck.value) duck(true);
+  if(k===S.keyPower.value) activatePower();
+  if(k===S.keyPause.value) togglePause();
+  if(k===S.keyRestart.value) restartGame();
+  if(k===S.keySettings.value) toggleSettings();
+});
+canvas.addEventListener('keyup',e=>{
+  if(e.key===S.keyDuck.value) duck(false);
+});
+window.addEventListener('keydown',e=>canvas.dispatchEvent(new KeyboardEvent('keydown',e)));
+window.addEventListener('keyup',e=>canvas.dispatchEvent(new KeyboardEvent('keyup',e)));
+canvas.addEventListener('click',()=>{ gameStarted ? jump() : startGame(); });
+const overlay=document.getElementById('overlay');
+init();
 </script>
 </body>
 </html>
