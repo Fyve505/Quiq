@@ -7,36 +7,103 @@
     * { box-sizing: border-box; }
     body { margin:0; background:var(--bg); color:var(--fg); font-family:'Segoe UI'; overflow:hidden }
     canvas { background:var(--bg-grad); display:block; width:100vw;height:100vh }
-    #ui,#settings,#shop{position:absolute;z-index:10;padding:15px;border-radius:10px;background:rgba(0,0,0,0.5);backdrop-filter:blur(5px)}
-    #ui{top:20px;left:20px}
-    #settings{top:20px;right:20px;width:320px;max-height:85vh;overflow:auto;display:none}
-    #shop{top:80px;right:20px;width:280px;max-height:70vh;overflow:auto;display:none}
-    .btn,select,label,input[type=color],input[type=number],input[type=text]{margin:8px 0;width:100%}
-    .btn{padding:8px;border:none;border-radius:6px;background:var(--btn-bg);color:var(--btn-fg);cursor:pointer}
-    input[type=color]{padding:0;height:28px}
-    :root {--bg:#1e1e1e;--fg:#eee;--bg-grad:linear-gradient(to top,#1c1c1c,#2a2a2a);--btn-bg:#333;--btn-fg:#eee}
-    [data-theme=light]{--bg:#fafafa;--fg:#111;--bg-grad:linear-gradient(to top,#fff,#ddd);--btn-bg:#ddd;--btn-fg:#111}
-    #overlay{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);flex-direction:column;z-index:9}
-    #overlay .btn{max-width:200px}
+    #ui,#settings,#shop {
+      position:absolute; z-index:10; padding:15px; border-radius:10px; background:rgba(0,0,0,0.5);
+      backdrop-filter:blur(5px);
+      user-select:none;
+    }
+    #ui {
+      top:20px; left:20px; max-width: 300px;
+      display:flex; flex-wrap: wrap; gap: 6px;
+    }
+    #ui .btn {
+      flex-grow: 1;
+      min-width: 60px;
+    }
+    #settings {
+      top:20px; right:20px; width:320px; max-height:85vh; overflow:auto; display:none;
+    }
+    #shop {
+      top: 120px; right: 20px; width: 320px; max-height: 400px; overflow:auto; display:none;
+      cursor: move;
+    }
+    #shop.minimized {
+      height: 40px !important;
+      overflow: hidden !important;
+      cursor: default;
+    }
+    #shopHeader {
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: grab;
+      background: rgba(255,255,255,0.1);
+      padding: 6px 10px;
+      border-radius: 8px 8px 0 0;
+      user-select:none;
+    }
+    #shopHeader button {
+      background: transparent;
+      border: none;
+      color: var(--btn-fg);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0 6px;
+      user-select:none;
+    }
+    #shopContent {
+      padding: 10px 0;
+    }
+    .btn, select, label, input[type=color], input[type=number], input[type=text] {
+      margin:8px 0; width:100%;
+    }
+    .btn {
+      padding:8px; border:none; border-radius:6px; background:var(--btn-bg); color:var(--btn-fg); cursor:pointer;
+      user-select:none;
+    }
+    input[type=color] { padding:0; height:28px }
+    :root {
+      --bg:#1e1e1e; --fg:#eee; --bg-grad:linear-gradient(to top,#1c1c1c,#2a2a2a);
+      --btn-bg:#333; --btn-fg:#eee
+    }
+    [data-theme=light] {
+      --bg:#fafafa; --fg:#111; --bg-grad:linear-gradient(to top,#fff,#ddd);
+      --btn-bg:#ddd; --btn-fg:#111
+    }
+    #overlay {
+      position:absolute; top:0; left:0; width:100%; height:100%;
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(0,0,0,0.7); flex-direction:column; z-index:9;
+    }
+    #overlay .btn {
+      max-width:200px;
+    }
+    /* Scrollbar for settings and shop */
+    #settings::-webkit-scrollbar, #shop::-webkit-scrollbar {
+      width: 8px;
+    }
+    #settings::-webkit-scrollbar-thumb, #shop::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body data-theme="dark">
   <canvas id="gameCanvas" tabindex="0"></canvas>
+
   <div id="ui">
-    <button class="btn" onclick="togglePause()">⏯ Pause</button>
-    <button class="btn" onclick="restartGame()">🔁 Restart</button>
-    <button class="btn" onclick="toggleSettings()">⚙️ Settings</button>
-    <button class="btn" onclick="toggleShop()">🛒 Shop</button>
-    <label>Difficulty:
-      <select id="difficultySelect" onchange="setDifficulty(this.value)">
+    <button class="btn" id="pauseBtn">⏯ Pause</button>
+    <button class="btn" id="restartBtn">🔁 Restart</button>
+    <button class="btn" id="settingsBtn">⚙️ Settings</button>
+    <button class="btn" id="shopBtn">🛒 Shop</button>
+    <label style="flex-basis:100%; margin-top:8px;">
+      Difficulty:
+      <select id="difficultySelect">
         <option value="5">Easy</option>
         <option value="8" selected>Medium</option>
         <option value="12">Hard</option>
       </select>
     </label>
-    <div id="scoreDisplay">Score: 0 | High: 0</div>
-    <div>🎁 Power‑Ups: <span id="powerCounts"></span></div>
-    <div>💰 Coins: <span id="coinDisplay">0</span></div>
+    <div id="scoreDisplay" style="flex-basis:100%;">Score: 0 | High: 0 | Coins: 0</div>
+    <div style="flex-basis:100%;">🎁 Power‑Ups: <span id="powerCounts"></span></div>
   </div>
 
   <div id="settings">
@@ -45,198 +112,470 @@
     <label>Player Color: <input type="color" id="colorPlayer" value="#1E90FF"></label>
     <label>Obstacle Color: <input type="color" id="colorObstacle" value="#DC143C"></label>
     <label><input type="checkbox" id="audioToggle" checked> Sound FX</label>
-    <hr><h4>Keybindings</h4>
-    <label>Jump: <input type="text" id="keyJump" value=" " maxlength="1"></label>
-    <label>Duck: <input type="text" id="keyDuck" value="ArrowDown" maxlength="12"></label>
-    <label>Power: <input type="text" id="keyPower" value="p" maxlength="12"></label>
-    <label>Pause: <input type="text" id="keyPause" value="Escape" maxlength="12"></label>
-    <label>Restart: <input type="text" id="keyRestart" value="r" maxlength="12"></label>
-    <label>Settings: <input type="text" id="keySettings" value="s" maxlength="12"></label>
-    <button class="btn" onclick="applySettings()">Apply Settings</button>
+    <hr>
+    <h4>Keybindings</h4>
+    <label>Jump: <input type="text" id="keyJump" value=" " maxlength="1" placeholder="Space"></label>
+    <label>Duck: <input type="text" id="keyDuck" value="ArrowDown" maxlength="10" placeholder="ArrowDown"></label>
+    <label>Power: <input type="text" id="keyPower" value="p" maxlength="1"></label>
+    <label>Pause: <input type="text" id="keyPause" value="" maxlength="10" placeholder="None"></label>
+    <label>Restart: <input type="text" id="keyRestart" value="" maxlength="10" placeholder="None"></label>
+    <label>Settings: <input type="text" id="keySettings" value="" maxlength="10" placeholder="None"></label>
+    <hr>
+    <h4>Power-Ups</h4>
+    <label>Shield: <input type="number" id="countShield" min=0 max=99 value=1></label>
+    <label>Speed Boost: <input type="number" id="countSpeed" min=0 max=99 value=1></label>
+    <label>Double Points: <input type="number" id="countDouble" min=0 max=99 value=1></label>
+    <label>Double Jump: <input type="number" id="countDoubleJump" min=0 max=99 value=1></label>
+    <label>Magnet: <input type="number" id="countMagnet" min=0 max=99 value=1></label>
+    <button class="btn" id="applySettingsBtn">Apply Settings</button>
   </div>
 
   <div id="shop">
-    <h3>Shop (25 💰 per item)</h3>
-    <button class="btn" onclick="buyPower('shield')">🛡 Shield</button>
-    <button class="btn" onclick="buyPower('speed')">⚡ Speed Boost</button>
-    <button class="btn" onclick="buyPower('double')">✌️ Double Points</button>
-    <button class="btn" onclick="buyPower('doubleJump')">🚀 Double Jump</button>
-    <button class="btn" onclick="buyPower('magnet')">🧲 Magnet</button>
-    <button class="btn" onclick="toggleShop()">Close</button>
+    <div id="shopHeader">
+      <span>Shop (25 Coins Each)</span>
+      <div>
+        <button id="shopMinimizeBtn">—</button>
+        <button id="shopCloseBtn">×</button>
+      </div>
+    </div>
+    <div id="shopContent">
+      <button class="btn" data-power="shield">Buy Shield</button>
+      <button class="btn" data-power="speed">Buy Speed Boost</button>
+      <button class="btn" data-power="double">Buy Double Points</button>
+      <button class="btn" data-power="doubleJump">Buy Double Jump</button>
+      <button class="btn" data-power="magnet">Buy Magnet</button>
+    </div>
   </div>
 
   <div id="overlay">
     <h1>Quiq - Runner</h1>
     <p>Click or Press Jump Key</p>
-    <button class="btn" onclick="startGame()">▶ Start</button>
+    <button class="btn" id="startBtn">▶ Start</button>
   </div>
 
 <script>
-const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
-const S = {
-  themeToggle: document.getElementById('themeToggle'), colorPlayer: document.getElementById('colorPlayer'),
-  colorObstacle: document.getElementById('colorObstacle'), audioToggle: document.getElementById('audioToggle'),
-  keyJump: document.getElementById('keyJump'), keyDuck: document.getElementById('keyDuck'),
-  keyPower: document.getElementById('keyPower'), keyPause: document.getElementById('keyPause'),
-  keyRestart: document.getElementById('keyRestart'), keySettings: document.getElementById('keySettings')
-};
-let player, obstacles, frameCount, score, highScore, gameStarted, gamePaused, obstacleSpeed, powerUps;
-let canDoubleJump=false, magnetActive=false, coins = 0;
-
-function setCookie(name, value) {
-  const expires = new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
-}
-
-function getCookie(name) {
-  return document.cookie.split('; ').reduce((r, v) => {
-    const parts = v.split('=');
-    return parts[0] === name ? decodeURIComponent(parts[1]) : r;
-  }, null);
-}
-
-function init(){
-  canvas.width=innerWidth; canvas.height=innerHeight;
-  player={x:50,y:canvas.height-100,w:50,h:50,vy:0,gravity:0.6,jumping:false,ducking:false};
-  obstacles=[]; frameCount=0; score=0; obstacleSpeed=+document.getElementById('difficultySelect').value;
-  gameStarted=gamePaused=false;
-  highScore = parseInt(getCookie('highScore')) || 0;
-  coins = parseInt(getCookie('coins')) || 0;
-  powerUps={
-    shield:parseInt(getCookie('shield')) || 0,
-    speed:parseInt(getCookie('speed')) || 0,
-    double:parseInt(getCookie('double')) || 0,
-    doubleJump:parseInt(getCookie('doubleJump')) || 0,
-    magnet:parseInt(getCookie('magnet')) || 0
+  const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
+  const S = {
+    themeToggle: document.getElementById('themeToggle'), colorPlayer: document.getElementById('colorPlayer'),
+    colorObstacle: document.getElementById('colorObstacle'), audioToggle: document.getElementById('audioToggle'),
+    keyJump: document.getElementById('keyJump'), keyDuck: document.getElementById('keyDuck'),
+    keyPower: document.getElementById('keyPower'),
+    countShield: document.getElementById('countShield'), countSpeed: document.getElementById('countSpeed'),
+    countDouble: document.getElementById('countDouble'), countDoubleJump: document.getElementById('countDoubleJump'),
+    countMagnet: document.getElementById('countMagnet'),
+    keyPause: document.getElementById('keyPause'), keyRestart: document.getElementById('keyRestart'), keySettings: document.getElementById('keySettings')
   };
-  updateScore(); updatePowerDisplay();
-}
-function updateScore(){
-  document.getElementById('scoreDisplay').textContent=`Score: ${score} | High: ${highScore}`;
-}
-function updatePowerDisplay(){
-  document.getElementById('powerCounts').textContent=
-    `🛡${powerUps.shield} ⚡${powerUps.speed} ✌️${powerUps.double} 🚀${powerUps.doubleJump} 🧲${powerUps.magnet}`;
-  document.getElementById('coinDisplay').textContent = coins;
-  for (let key in powerUps) setCookie(key, powerUps[key]);
-  setCookie('coins', coins);
-}
-function applySettings(){
-  document.body.setAttribute('data-theme',S.themeToggle.checked?'light':'dark');
-  updatePowerDisplay(); toggleSettings();
-}
-function togglePause(){if(!gameStarted)return;gamePaused=!gamePaused;if(!gamePaused)gameLoop();}
-function restartGame(){init();overlay.style.display='none';gameLoop();}
-function toggleSettings(){document.getElementById('settings').style.display =
-  document.getElementById('settings').style.display==='none'?'block':'none';}
-function toggleShop(){document.getElementById('shop').style.display =
-  document.getElementById('shop').style.display==='none'?'block':'none';}
-function setDifficulty(v){obstacleSpeed=+v; obstacles.forEach(o=>o.speed=v);}
-function startGame(){gameStarted=true;overlay.style.display='none';gameLoop();}
-function createObstacle(){
-  const h=Math.random()*80+30, r=Math.random(), type=r<0.4?'rect':r<0.7?'circle':'bird';
-  obstacles.push({
-    x:canvas.width, y:canvas.height-(type==='rect'?h:(type==='circle'?h+20:120)),
-    w:type==='circle'?40:30, h, type, speed:obstacleSpeed, passed:false, anim:0
-  });
-}
-function jump(){
-  if(!player.jumping){
-    player.vy=-15; player.jumping=true; canDoubleJump=true;
-  }
-  else if(canDoubleJump && powerUps.doubleJump>0){
-    player.vy=-15; powerUps.doubleJump--; canDoubleJump=false; updatePowerDisplay();
-  }
-}
-function duck(on){player.ducking=on;}
-function activatePower(){
-  if(powerUps.shield){powerUps.shield--; updatePowerDisplay(); return;}
-  if(powerUps.speed){powerUps.speed--; obstacleSpeed+=3; updatePowerDisplay(); return;}
-  if(powerUps.double){powerUps.double--; score*=2; updateScore(); updatePowerDisplay(); return;}
-  if(powerUps.magnet){powerUps.magnet--; magnetActive=true; setTimeout(()=>magnetActive=false,5000); updatePowerDisplay();}
-}
-function buyPower(type){
-  if(coins>=25){
-    coins-=25;
-    powerUps[type]++; updatePowerDisplay();
-  } else {
-    alert("Not enough coins!");
-  }
-}
-function gameOver(){
-  gameStarted=false;
-  overlay.innerHTML=`<h1>Game Over</h1><p>Score: ${score}</p><button class="btn" onclick="restartGame()">🔁 Restart</button>`;
-  overlay.style.display='flex';
-}
-function gameLoop(){
-  if(!gameStarted||gamePaused) return;
-  ctx.clearRect(0,0,canvas.width,canvas.height); frameCount++;
-  if(frameCount%80===0) createObstacle();
+  let player, obstacles, frameCount, score, highScore, coins, gameStarted, gamePaused, obstacleSpeed, powerUps;
+  let canDoubleJump = false, magnetActive = false;
 
-  player.y+=player.vy; player.vy+=player.gravity;
-  if(player.ducking) player.h=30; else player.h=50;
-  if(player.y+player.h>=canvas.height){
-    player.y=canvas.height-player.h; player.jumping=false;
+  // Cookie helpers for persistent data
+  function setCookie(name, value) {
+    const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString(); // 1 year
+    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
   }
-  ctx.fillStyle=S.colorPlayer.value; ctx.fillRect(player.x,player.y,player.w,player.h);
 
-  obstacles=obstacles.filter(o=>{
-    o.x-=o.speed;
-    if(!o.passed && o.x + o.w < player.x){
-      score++;
-      if(o.type==='circle'){ coins+=1; }
-      if(score > highScore){ highScore = score; setCookie('highScore', highScore); }
-      o.passed=true; updateScore(); updatePowerDisplay();
-    }
-    if(o.x + o.w < 0) return false;
-    ctx.fillStyle=S.colorObstacle.value;
-    if(o.type==='rect') ctx.fillRect(o.x,o.y,o.w,o.h);
-    else if(o.type==='circle'){
-      ctx.beginPath(); ctx.arc(o.x,o.y+o.h/2,o.w/2,0,2*Math.PI); ctx.fill();
+  function getCookie(name) {
+    return document.cookie.split('; ').reduce((r, v) => {
+      const parts = v.split('=');
+      return parts[0] === name ? decodeURIComponent(parts[1]) : r;
+    }, null);
+  }
+
+  // Initialize game variables
+  function init() {
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
+
+    player = { x: 50, y: canvas.height - 100, w: 50, h: 50, vy: 0, gravity: 0.6, jumping: false, ducking: false };
+    obstacles = [];
+    frameCount = 0;
+    score = 0;
+    obstacleSpeed = +document.getElementById('difficultySelect').value;
+    gameStarted = gamePaused = false;
+    highScore = parseInt(getCookie('highScore')) || 0;
+    coins = parseInt(getCookie('coins')) || 0;
+
+    powerUps = {
+      shield: +S.countShield.value,
+      speed: +S.countSpeed.value,
+      double: +S.countDouble.value,
+      doubleJump: +S.countDoubleJump.value,
+      magnet: +S.countMagnet.value
+    };
+
+    updateScore();
+    updatePowerDisplay();
+    updateCoinDisplay();
+  }
+
+  function updateScore() {
+    document.getElementById('scoreDisplay').textContent = `Score: ${score} | High: ${highScore} | Coins: ${coins}`;
+  }
+
+  function updatePowerDisplay() {
+    document.getElementById('powerCounts').textContent =
+      `🛡${powerUps.shield} ⚡${powerUps.speed} ✌️${powerUps.double} 🚀${powerUps.doubleJump} 🧲${powerUps.magnet}`;
+  }
+
+  function updateCoinDisplay() {
+    // Coins are shown in scoreDisplay with score & highScore
+    // This function can do other UI updates if needed
+  }
+
+  function applySettings() {
+    document.body.setAttribute('data-theme', S.themeToggle.checked ? 'light' : 'dark');
+
+    // Update powerUps counts from settings inputs
+    powerUps.shield = +S.countShield.value;
+    powerUps.speed = +S.countSpeed.value;
+    powerUps.double = +S.countDouble.value;
+    powerUps.doubleJump = +S.countDoubleJump.value;
+    powerUps.magnet = +S.countMagnet.value;
+
+    updatePowerDisplay();
+    toggleSettings(false);
+  }
+
+  // Toggle Settings panel visibility
+  function toggleSettings(showToggle) {
+    const settings = document.getElementById('settings');
+    if (typeof showToggle === 'boolean') {
+      settings.style.display = showToggle ? 'block' : 'none';
     } else {
-      ctx.beginPath(); ctx.moveTo(o.x,o.y+o.h/2);
-      ctx.lineTo(o.x+o.w,o.y+(o.anim%2?o.h/4:o.h*3/4));
-      ctx.lineTo(o.x+o.w,o.y+(o.anim%2?o.h*3/4:o.h/4)); ctx.fill(); o.anim++;
+      settings.style.display = settings.style.display === 'none' ? 'block' : 'none';
     }
-    return true;
+  }
+
+  // Toggle Shop panel visibility
+  function toggleShop(showToggle) {
+    const shop = document.getElementById('shop');
+    if (typeof showToggle === 'boolean') {
+      shop.style.display = showToggle ? 'block' : 'none';
+    } else {
+      shop.style.display = shop.style.display === 'none' ? 'block' : 'none';
+    }
+  }
+
+  // Close menus (Settings and Shop)
+  function closeMenus() {
+    toggleSettings(false);
+    toggleShop(false);
+  }
+
+  // Game start
+  function startGame() {
+    gameStarted = true;
+    gamePaused = false;
+    overlay.style.display = 'none';
+    closeMenus();
+    gameLoop();
+  }
+
+  // Restart game
+  function restartGame() {
+    init();
+    overlay.style.display = 'none';
+    closeMenus();
+    gameLoop();
+  }
+
+  // Pause toggle
+  function togglePause() {
+    if (!gameStarted) return;
+    gamePaused = !gamePaused;
+    if (!gamePaused) {
+      closeMenus();
+      gameLoop();
+      document.getElementById('pauseBtn').textContent = '⏸ Pause';
+    } else {
+      document.getElementById('pauseBtn').textContent = '▶ Resume';
+    }
+  }
+
+  // Difficulty changed
+  document.getElementById('difficultySelect').addEventListener('change', e => {
+    obstacleSpeed = +e.target.value;
+    obstacles.forEach(o => o.speed = obstacleSpeed);
   });
 
-  if(magnetActive){
-    obstacles.forEach((o,i)=>{
-      if(o.type==='circle' && Math.hypot((o.x - player.x),(o.y - player.y)) < 200){
-        coins++; score++; obstacles.splice(i,1); updateScore(); updatePowerDisplay();
-      }
+  // Create obstacles
+  function createObstacle() {
+    const h = Math.random() * 80 + 30, r = Math.random();
+    const type = r < 0.4 ? 'rect' : r < 0.7 ? 'circle' : 'bird';
+    obstacles.push({
+      x: canvas.width,
+      y: canvas.height - (type === 'rect' ? h : (type === 'circle' ? h + 20 : 120)),
+      w: type === 'circle' ? 40 : 30,
+      h,
+      type,
+      speed: obstacleSpeed,
     });
   }
 
-  for(let o of obstacles){
-    if(player.x < o.x + o.w && player.x + player.w > o.x &&
-       player.y < o.y + o.h && player.y + player.h > o.y){
-      if(powerUps.shield){powerUps.shield--; updatePowerDisplay(); obstacles = obstacles.filter(x => x !== o); break;}
-      gameOver(); return;
+  // Game loop
+  function gameLoop() {
+    if (!gameStarted || gamePaused) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw player
+    ctx.fillStyle = S.colorPlayer.value;
+    ctx.fillRect(player.x, player.y, player.w, player.h);
+
+    // Player physics
+    player.vy += player.gravity;
+    player.y += player.vy;
+
+    // Ground collision
+    if (player.y > canvas.height - player.h - 50) {
+      player.y = canvas.height - player.h - 50;
+      player.jumping = false;
+      player.vy = 0;
+    }
+
+    // Draw obstacles
+    ctx.fillStyle = S.colorObstacle.value;
+    obstacles.forEach((o, i) => {
+      o.x -= o.speed;
+      if (o.x + o.w < 0) obstacles.splice(i, 1);
+
+      if (o.type === 'rect') {
+        ctx.fillRect(o.x, o.y - o.h, o.w, o.h);
+      } else if (o.type === 'circle') {
+        ctx.beginPath();
+        ctx.arc(o.x + o.w/2, o.y - o.h/2, o.w/2, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // Bird shape (triangle)
+        ctx.beginPath();
+        ctx.moveTo(o.x, o.y - o.h);
+        ctx.lineTo(o.x + o.w, o.y - o.h/2);
+        ctx.lineTo(o.x, o.y);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Collision detection (simple box for now)
+      if (
+        player.x < o.x + o.w && player.x + player.w > o.x &&
+        player.y < o.y && player.y + player.h > o.y - o.h
+      ) {
+        if (powerUps.shield > 0) {
+          powerUps.shield--;
+          updatePowerDisplay();
+          obstacles.splice(i, 1);
+        } else {
+          gameOver();
+          return;
+        }
+      }
+    });
+
+    // Score & coins
+    score++;
+    if (powerUps.double > 0) score++; // double points power-up
+    updateScore();
+
+    // Occasionally create obstacle
+    if (frameCount % 90 === 0) createObstacle();
+    frameCount++;
+
+    // Coins earning
+    if (frameCount % 60 === 0) { // every second
+      coins++;
+      setCookie('coins', coins);
+      updateScore();
+    }
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  // Game over handler
+  function gameOver() {
+    gameStarted = false;
+    if(score > highScore) {
+      highScore = score;
+      setCookie('highScore', highScore);
+    }
+    overlay.style.display = 'flex';
+    overlay.querySelector('p').textContent = 'Game Over! Your score: ' + score;
+  }
+
+  // Jump player
+  function playerJump() {
+    if (!gameStarted || gamePaused) return;
+    if (!player.jumping) {
+      player.vy = -12;
+      player.jumping = true;
+    } else if (powerUps.doubleJump > 0 && canDoubleJump) {
+      player.vy = -12;
+      canDoubleJump = false;
+      powerUps.doubleJump--;
+      updatePowerDisplay();
     }
   }
-  requestAnimationFrame(gameLoop);
-}
 
-canvas.focus();
-canvas.addEventListener('keydown',e=>{
-  const k=e.key;
-  if(k===S.keyJump.value) jump();
-  if(k===S.keyDuck.value) duck(true);
-  if(k===S.keyPower.value) activatePower();
-  if(k===S.keyPause.value) togglePause();
-  if(k===S.keyRestart.value) restartGame();
-  if(k===S.keySettings.value) toggleSettings();
-});
-canvas.addEventListener('keyup',e=>{
-  if(e.key===S.keyDuck.value) duck(false);
-});
-window.addEventListener('keydown',e=>canvas.dispatchEvent(new KeyboardEvent('keydown',e)));
-window.addEventListener('keyup',e=>canvas.dispatchEvent(new KeyboardEvent('keyup',e)));
-canvas.addEventListener('click',()=>{ gameStarted ? jump() : startGame(); });
-const overlay=document.getElementById('overlay');
-init();
+  // Duck player
+  function playerDuck() {
+    if (!gameStarted || gamePaused) return;
+    player.ducking = true;
+    player.h = 30;
+  }
+
+  // Stand up from duck
+  function playerStand() {
+    player.ducking = false;
+    player.h = 50;
+  }
+
+  // Power button (just example)
+  function usePower() {
+    if (!gameStarted || gamePaused) return;
+    if (powerUps.shield > 0) {
+      alert('Shield activated!');
+      // Some shield logic here
+      powerUps.shield--;
+      updatePowerDisplay();
+    }
+  }
+
+  // Buttons and controls
+  const pauseBtn = document.getElementById('pauseBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const settingsBtn = document.getElementById('settingsBtn');
+  const shopBtn = document.getElementById('shopBtn');
+  const startBtn = document.getElementById('startBtn');
+  const overlay = document.getElementById('overlay');
+
+  pauseBtn.onclick = togglePause;
+  restartBtn.onclick = restartGame;
+  settingsBtn.onclick = () => {
+    toggleSettings();
+    toggleShop(false);
+  };
+  shopBtn.onclick = () => {
+    toggleShop();
+    toggleSettings(false);
+  };
+  startBtn.onclick = () => {
+    startGame();
+  };
+  document.getElementById('applySettingsBtn').onclick = applySettings;
+
+  // Key input handling for keybindings
+  const keyMap = {
+    jump: S.keyJump.value || ' ',
+    duck: S.keyDuck.value || 'ArrowDown',
+    power: S.keyPower.value || 'p',
+    pause: S.keyPause.value || '',
+    restart: S.keyRestart.value || '',
+    settings: S.keySettings.value || ''
+  };
+
+  window.addEventListener('keydown', e => {
+    if (e.key === keyMap.jump) playerJump();
+    if (e.key === keyMap.duck) playerDuck();
+    if (e.key === keyMap.power) usePower();
+    if (e.key === keyMap.pause) togglePause();
+    if (e.key === keyMap.restart) restartGame();
+    if (e.key === keyMap.settings) {
+      toggleSettings();
+      toggleShop(false);
+    }
+  });
+  window.addEventListener('keyup', e => {
+    if (e.key === keyMap.duck) playerStand();
+  });
+
+  // Shop buying logic
+  const shopButtons = document.querySelectorAll('#shopContent .btn');
+  shopButtons.forEach(btn => {
+    btn.onclick = () => {
+      const power = btn.getAttribute('data-power');
+      if (coins >= 25) {
+        coins -= 25;
+        powerUps[power]++;
+        setCookie('coins', coins);
+        updatePowerDisplay();
+        updateScore();
+      } else {
+        alert('Not enough coins!');
+      }
+    };
+  });
+
+  // Shop minimize and close buttons
+  const shop = document.getElementById('shop');
+  const shopMinimizeBtn = document.getElementById('shopMinimizeBtn');
+  const shopCloseBtn = document.getElementById('shopCloseBtn');
+
+  shopMinimizeBtn.onclick = () => {
+    if (shop.classList.contains('minimized')) {
+      shop.classList.remove('minimized');
+      shopMinimizeBtn.textContent = '—';
+    } else {
+      shop.classList.add('minimized');
+      shopMinimizeBtn.textContent = '+';
+    }
+  };
+  shopCloseBtn.onclick = () => {
+    toggleShop(false);
+  };
+
+  // Drag functionality for shop
+  let dragOffsetX, dragOffsetY, dragging = false;
+  const shopHeader = document.getElementById('shopHeader');
+
+  shopHeader.addEventListener('mousedown', e => {
+    dragging = true;
+    dragOffsetX = e.clientX - shop.offsetLeft;
+    dragOffsetY = e.clientY - shop.offsetTop;
+    shopHeader.style.cursor = 'grabbing';
+  });
+  window.addEventListener('mouseup', e => {
+    dragging = false;
+    shopHeader.style.cursor = 'grab';
+  });
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    let newX = e.clientX - dragOffsetX;
+    let newY = e.clientY - dragOffsetY;
+    // Clamp inside viewport
+    newX = Math.min(Math.max(newX, 0), window.innerWidth - shop.offsetWidth);
+    newY = Math.min(Math.max(newY, 0), window.innerHeight - shop.offsetHeight);
+    shop.style.left = newX + 'px';
+    shop.style.top = newY + 'px';
+  });
+
+  // Initialize and start overlay
+  init();
+
+  // Close menus when game is running (not paused)
+  function closeMenus() {
+    toggleSettings(false);
+    toggleShop(false);
+  }
+
+  // Override startGame and togglePause to close menus when running
+  function startGame() {
+    gameStarted = true;
+    gamePaused = false;
+    overlay.style.display = 'none';
+    closeMenus();
+    gameLoop();
+  }
+
+  function togglePause() {
+    if (!gameStarted) return;
+    gamePaused = !gamePaused;
+    if (!gamePaused) {
+      closeMenus();
+      gameLoop();
+      pauseBtn.textContent = '⏸ Pause';
+    } else {
+      pauseBtn.textContent = '▶ Resume';
+    }
+  }
 </script>
 </body>
 </html>
