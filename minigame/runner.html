@@ -25,7 +25,13 @@
     <button class="btn" onclick="togglePause()">⏯ Pause</button>
     <button class="btn" onclick="restartGame()">🔁 Restart</button>
     <button class="btn" onclick="toggleSettings()">⚙️ Settings</button>
-    <label>Difficulty:<select id="difficultySelect" onchange="setDifficulty(this.value)"><option value="5">Easy</option><option value="8" selected>Medium</option><option value="12">Hard</option></select></label>
+    <label>Difficulty:
+      <select id="difficultySelect" onchange="setDifficulty(this.value)">
+        <option value="5">Easy</option>
+        <option value="8" selected>Medium</option>
+        <option value="12">Hard</option>
+      </select>
+    </label>
     <div id="scoreDisplay">Score: 0 | High: 0</div>
     <div>🎁 Power‑Ups: <span id="powerCounts"></span></div>
   </div>
@@ -68,17 +74,39 @@
   let player, obstacles, frameCount, score, highScore, gameStarted, gamePaused, obstacleSpeed, powerUps;
   let canDoubleJump=false, magnetActive=false;
 
+  // Cookie helpers for persistent high score
+  function setCookie(name, value) {
+    const expires = new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000).toUTCString();
+    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+  }
+
+  function getCookie(name) {
+    return document.cookie.split('; ').reduce((r, v) => {
+      const parts = v.split('=');
+      return parts[0] === name ? decodeURIComponent(parts[1]) : r;
+    }, null);
+  }
+
   function init(){
     canvas.width=innerWidth;canvas.height=innerHeight;
     player={x:50,y:canvas.height-100,w:50,h:50,vy:0,gravity:0.6,jumping:false,ducking:false};
     obstacles=[];frameCount=0;score=0;obstacleSpeed=+document.getElementById('difficultySelect').value;
-    gameStarted=gamePaused=false; highScore=localStorage.highScore||0;
-    powerUps={shield:+S.countShield.value,speed:+S.countSpeed.value,double:+S.countDouble.value,
-      doubleJump:+S.countDoubleJump.value,magnet:+S.countMagnet.value};
-    updateScore();updatePowerDisplay();
+    gameStarted=gamePaused=false;
+    highScore = parseInt(getCookie('highScore')) || 0;
+    powerUps={
+      shield:+S.countShield.value,
+      speed:+S.countSpeed.value,
+      double:+S.countDouble.value,
+      doubleJump:+S.countDoubleJump.value,
+      magnet:+S.countMagnet.value
+    };
+    updateScore();
+    updatePowerDisplay();
   }
 
-  function updateScore(){document.getElementById('scoreDisplay').textContent=`Score:${score}|High:${highScore}`;}
+  function updateScore(){
+    document.getElementById('scoreDisplay').textContent=`Score: ${score} | High: ${highScore}`;
+  }
   function updatePowerDisplay(){
     document.getElementById('powerCounts').textContent=
       `🛡${powerUps.shield} ⚡${powerUps.speed} ✌️${powerUps.double} 🚀${powerUps.doubleJump} 🧲${powerUps.magnet}`;
@@ -86,25 +114,48 @@
 
   function applySettings(){
     document.body.setAttribute('data-theme',S.themeToggle.checked?'light':'dark');
-    updatePowerDisplay();toggleSettings();
+    updatePowerDisplay();
+    toggleSettings();
   }
 
   function startGame(){gameStarted=true;overlay.style.display='none';gameLoop();}
   function restartGame(){init();overlay.style.display='none';gameLoop();}
   function togglePause(){if(!gameStarted)return;gamePaused=!gamePaused; if(!gamePaused)gameLoop();}
-  function toggleSettings(){document.getElementById('settings').style.display=
-    document.getElementById('settings').style.display==='none'?'block':'none';}
-  function setDifficulty(v){obstacleSpeed=+v;obstacles.forEach(o=>o.speed=v);}
+  function toggleSettings(){
+    document.getElementById('settings').style.display=
+      document.getElementById('settings').style.display==='none'?'block':'none';
+  }
+  function setDifficulty(v){
+    obstacleSpeed=+v;
+    obstacles.forEach(o=>o.speed=v);
+  }
 
   function createObstacle(){
     const h=Math.random()*80+30, r=Math.random(), type=r<0.4?'rect':r<0.7?'circle':'bird';
-    obstacles.push({x:canvas.width,y:canvas.height-(type==='rect'?h:(type==='circle'?h+20:120)),
-      w:type==='circle'?40:30,h,type,speed:obstacleSpeed,passed:false,anim:0});
+    obstacles.push({
+      x:canvas.width,
+      y:canvas.height-(type==='rect'?h:(type==='circle'?h+20:120)),
+      w:type==='circle'?40:30,
+      h,
+      type,
+      speed:obstacleSpeed,
+      passed:false,
+      anim:0
+    });
   }
 
   function jump(){
-    if(!player.jumping){player.vy=-15;player.jumping=true;canDoubleJump=true;}
-    else if(canDoubleJump && powerUps.doubleJump>0){player.vy=-15;powerUps.doubleJump--;canDoubleJump=false;updatePowerDisplay();}
+    if(!player.jumping){
+      player.vy=-15;
+      player.jumping=true;
+      canDoubleJump=true;
+    }
+    else if(canDoubleJump && powerUps.doubleJump>0){
+      player.vy=-15;
+      powerUps.doubleJump--;
+      canDoubleJump=false;
+      updatePowerDisplay();
+    }
   }
 
   function duck(on){
@@ -112,44 +163,98 @@
   }
 
   function activatePower(){
-    if(powerUps.shield){powerUps.shield--;updatePowerDisplay();return;}
-    if(powerUps.speed){powerUps.speed--;obstacleSpeed+=3;updatePowerDisplay();return;}
-    if(powerUps.double){powerUps.double--;updateScore();powerUps.double*=2;updatePowerDisplay();return;}
-    if(powerUps.magnet){powerUps.magnet--;magnetActive=true;setTimeout(()=>magnetActive=false,5000);updatePowerDisplay();}
+    if(powerUps.shield){
+      powerUps.shield--;
+      updatePowerDisplay();
+      return;
+    }
+    if(powerUps.speed){
+      powerUps.speed--;
+      obstacleSpeed+=3;
+      updatePowerDisplay();
+      return;
+    }
+    if(powerUps.double){
+      powerUps.double--;
+      updateScore();
+      powerUps.double*=2;
+      updatePowerDisplay();
+      return;
+    }
+    if(powerUps.magnet){
+      powerUps.magnet--;
+      magnetActive=true;
+      setTimeout(()=>magnetActive=false,5000);
+      updatePowerDisplay();
+    }
   }
 
-  canvas.addEventListener('keydown',e=>{const k=e.key;
-    if(k===S.keyJump.value)jump();
-    if(k===S.keyDuck.value)duck(true);
-    if(k===S.keyPower.value)activatePower();
+  canvas.addEventListener('keydown',e=>{
+    const k=e.key;
+    if(k===S.keyJump.value) jump();
+    if(k===S.keyDuck.value) duck(true);
+    if(k===S.keyPower.value) activatePower();
   });
-  canvas.addEventListener('keyup',e=>{if(e.key===S.keyDuck.value)duck(false);});
+  canvas.addEventListener('keyup',e=>{
+    if(e.key===S.keyDuck.value) duck(false);
+  });
   window.addEventListener('keydown',e=>canvas.dispatchEvent(new KeyboardEvent('keydown',e)));
   window.addEventListener('keyup',e=>canvas.dispatchEvent(new KeyboardEvent('keyup',e)));
 
-  canvas.addEventListener('click',()=>gameStarted?jump():startGame());
+  canvas.addEventListener('click',()=>{
+    gameStarted ? jump() : startGame();
+  });
+
   const overlay=document.getElementById('overlay');
 
   function gameLoop(){
-    if(!gameStarted||gamePaused)return;
+    if(!gameStarted||gamePaused) return;
+
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    frameCount++; if(frameCount%80===0)createObstacle();
+    frameCount++;
+    if(frameCount%80===0) createObstacle();
+
     // Player movement
-    player.y+=player.vy;player.vy+=player.gravity;
+    player.y+=player.vy;
+    player.vy+=player.gravity;
     if(player.ducking) player.h=30; else player.h=50;
-    if(player.y+player.h>=canvas.height){player.y=canvas.height-player.h;player.jumping=false;}
+    if(player.y+player.h>=canvas.height){
+      player.y=canvas.height-player.h;
+      player.jumping=false;
+    }
 
     ctx.fillStyle=S.colorPlayer.value;
     ctx.fillRect(player.x,player.y,player.w,player.h);
 
     obstacles=obstacles.filter(o=>{
-      o.x-=o.speed; magnetActive&&ctx.beginPath(),0;
-      if(!o.passed&&o.x+o.w<player.x){score++;if(score>highScore){highScore=score;localStorage.highScore=highScore;}o.passed=true;updateScore();}
-      if(o.x+o.w<0)return false;
+      o.x-=o.speed;
+
+      if(!o.passed && o.x + o.w < player.x){
+        score++;
+        if(score > highScore){
+          highScore = score;
+          setCookie('highScore', highScore);
+        }
+        o.passed=true;
+        updateScore();
+      }
+      if(o.x + o.w < 0) return false;
+
       ctx.fillStyle=S.colorObstacle.value;
-      if(o.type==='rect')ctx.fillRect(o.x,o.y,o.w,o.h);
-      else if(o.type==='circle'){ctx.beginPath();ctx.arc(o.x,o.y+o.h/2,o.w/2,0,2*Math.PI);ctx.fill();}
-      else{ctx.beginPath();ctx.moveTo(o.x,o.y+o.h/2);ctx.lineTo(o.x+o.w,o.y+ (o.anim%2?o.h/4:o.h*3/4));ctx.lineTo(o.x+o.w,o.y+ (o.anim%2?o.h*3/4:o.h/4));ctx.fill();o.anim++;}
+      if(o.type==='rect') ctx.fillRect(o.x,o.y,o.w,o.h);
+      else if(o.type==='circle'){
+        ctx.beginPath();
+        ctx.arc(o.x,o.y+o.h/2,o.w/2,0,2*Math.PI);
+        ctx.fill();
+      }
+      else{
+        ctx.beginPath();
+        ctx.moveTo(o.x,o.y+o.h/2);
+        ctx.lineTo(o.x+o.w,o.y+(o.anim%2?o.h/4:o.h*3/4));
+        ctx.lineTo(o.x+o.w,o.y+(o.anim%2?o.h*3/4:o.h/4));
+        ctx.fill();
+        o.anim++;
+      }
       return true;
     });
 
@@ -157,16 +262,28 @@
     if(magnetActive){
       obstacles.forEach((o,i)=>{
         if(o.type==='circle' && Math.hypot((o.x - player.x),(o.y - player.y)) < 200){
-          score++; obstacles.splice(i,1); updateScore();
+          score++;
+          obstacles.splice(i,1);
+          updateScore();
         }
       });
     }
 
     // Collision
     for(let o of obstacles){
-      if(player.x<o.x+o.w&&player.x+player.w>o.x&&player.y<o.y+o.h&&player.y+player.h>o.y){
-        if(powerUps.shield){powerUps.shield--;updatePowerDisplay();obstacles=obstacles.filter(x=>x!==o);break;}
-        gameOver();return;
+      if(player.x < o.x + o.w &&
+         player.x + player.w > o.x &&
+         player.y < o.y + o.h &&
+         player.y + player.h > o.y){
+
+        if(powerUps.shield){
+          powerUps.shield--;
+          updatePowerDisplay();
+          obstacles = obstacles.filter(x => x !== o);
+          break;
+        }
+        gameOver();
+        return;
       }
     }
 
@@ -174,7 +291,12 @@
   }
 
   function gameOver(){
-    gameStarted=false; overlay.innerHTML=`<h1>Game Over</h1><p>Score:${score}</p><button class="btn" onclick="restartGame()">🔁 Restart</button>`;
+    gameStarted=false;
+    overlay.innerHTML=`
+      <h1>Game Over</h1>
+      <p>Score: ${score}</p>
+      <button class="btn" onclick="restartGame()">🔁 Restart</button>
+    `;
     overlay.style.display='flex';
   }
 
