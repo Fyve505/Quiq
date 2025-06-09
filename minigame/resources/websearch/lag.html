@@ -2,112 +2,162 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Lag Maker 3000</title>
+  <title>🔥 Lag Maker 3000 – Pro Edition</title>
   <style>
     body {
-      font-family: sans-serif;
-      text-align: center;
+      background: #111;
+      color: #0f0;
+      font-family: monospace;
       padding: 2rem;
-      background-color: #121212;
-      color: white;
+      text-align: center;
     }
-    select, button {
-      font-size: 1.2rem;
-      padding: 0.5rem;
-      margin: 1rem;
+
+    button, select {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      margin: 0.5rem;
+      cursor: pointer;
     }
+
     .box {
-      width: 10px;
-      height: 10px;
+      width: 8px;
+      height: 8px;
       background: red;
       position: absolute;
+    }
+
+    #dashboard {
+      border: 1px solid #0f0;
+      padding: 1rem;
+      margin-top: 2rem;
+      background: #000;
+    }
+
+    label {
+      display: block;
+      margin: 0.5rem 0;
+    }
+
+    .options {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1rem;
     }
   </style>
 </head>
 <body>
-  <h1>🔥 Lag Maker 3000 🔥</h1>
-  <p>Select lag level and press Start!</p>
+  <h1>🔥 Lag Maker 3000 – Pro Edition 🔥</h1>
 
-  <label for="lagLevel">Lag Level:</label>
-  <select id="lagLevel">
-    <option value="low">Low</option>
-    <option value="medium">Medium</option>
-    <option value="high">High</option>
-    <option value="extreme">EXTREME</option>
-  </select>
+  <div class="options">
+    <label><input type="checkbox" id="cpuBurn"> CPU Burn</label>
+    <label><input type="checkbox" id="domSpam"> DOM Spam</label>
+    <label><input type="checkbox" id="animateLag"> Animation Overload</label>
+    <label><input type="checkbox" id="storageSpam"> Storage Spam</label>
+  </div>
 
-  <br>
   <button onclick="startLag()">Start Lag</button>
   <button onclick="stopLag()">Stop Lag</button>
 
+  <div id="dashboard">
+    <h3>📊 Live Stats</h3>
+    <p>FPS: <span id="fps">0</span></p>
+    <p>DOM Nodes: <span id="domCount">0</span></p>
+    <p>Memory Usage (approx): <span id="memUsage">0</span> KB</p>
+  </div>
+
   <script>
-    let lagInterval = null;
-    let domInterval = null;
+    let cpuInterval, domInterval, animInterval, storageInterval;
+    let boxCount = 0;
+    let fpsCounter = 0;
 
-    function heavyComputation(iterations) {
-      const start = performance.now();
-      while (performance.now() - start < iterations) {
-        Math.sqrt(Math.random() * 9999); // waste CPU cycles
-      }
+    // === FPS Counter ===
+    let lastLoop = performance.now();
+    let fps = 0;
+
+    function updateFPS() {
+      const thisLoop = performance.now();
+      const fpsCalc = 1000 / (thisLoop - lastLoop);
+      lastLoop = thisLoop;
+      fpsCounter = Math.round(fpsCalc);
+      document.getElementById('fps').textContent = fpsCounter;
+      requestAnimationFrame(updateFPS);
     }
+    updateFPS();
 
-    function spawnBoxes(count) {
-      for (let i = 0; i < count; i++) {
-        const div = document.createElement('div');
-        div.className = 'box';
-        div.style.left = `${Math.random() * window.innerWidth}px`;
-        div.style.top = `${Math.random() * window.innerHeight}px`;
-        document.body.appendChild(div);
-      }
-    }
-
+    // === Start Lag ===
     function startLag() {
-      const level = document.getElementById('lagLevel').value;
-
-      let cpuTime = 0;
-      let boxCount = 0;
-      let frequency = 500;
-
-      switch (level) {
-        case 'low':
-          cpuTime = 50;
-          boxCount = 10;
-          frequency = 1000;
-          break;
-        case 'medium':
-          cpuTime = 200;
-          boxCount = 100;
-          frequency = 700;
-          break;
-        case 'high':
-          cpuTime = 500;
-          boxCount = 500;
-          frequency = 400;
-          break;
-        case 'extreme':
-          cpuTime = 1000;
-          boxCount = 2000;
-          frequency = 100;
-          break;
+      if (document.getElementById('cpuBurn').checked) {
+        cpuInterval = setInterval(() => {
+          let t = performance.now() + 500;
+          while (performance.now() < t) {
+            Math.sqrt(Math.random() * 1000000);
+          }
+        }, 100);
       }
 
-      lagInterval = setInterval(() => {
-        heavyComputation(cpuTime);
-      }, 50);
+      if (document.getElementById('domSpam').checked) {
+        domInterval = setInterval(() => {
+          for (let i = 0; i < 200; i++) {
+            const box = document.createElement('div');
+            box.className = 'box';
+            box.style.left = `${Math.random() * window.innerWidth}px`;
+            box.style.top = `${Math.random() * window.innerHeight}px`;
+            document.body.appendChild(box);
+            boxCount++;
+          }
+          document.getElementById('domCount').textContent = boxCount;
+        }, 300);
+      }
 
-      domInterval = setInterval(() => {
-        spawnBoxes(boxCount);
-      }, frequency);
+      if (document.getElementById('animateLag').checked) {
+        animInterval = setInterval(() => {
+          for (let i = 0; i < 300; i++) {
+            const d = document.createElement('div');
+            d.style.position = 'absolute';
+            d.style.left = `${Math.random() * 100}%`;
+            d.style.top = `${Math.random() * 100}%`;
+            d.style.width = '5px';
+            d.style.height = '5px';
+            d.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            d.style.transition = 'all 0.1s ease';
+            document.body.appendChild(d);
+            setTimeout(() => d.remove(), 1000);
+          }
+        }, 200);
+      }
+
+      if (document.getElementById('storageSpam').checked) {
+        storageInterval = setInterval(() => {
+          for (let i = 0; i < 100; i++) {
+            localStorage.setItem('spam_' + Math.random(), 'x'.repeat(100));
+          }
+        }, 200);
+      }
     }
 
+    // === Stop Lag ===
     function stopLag() {
-      clearInterval(lagInterval);
+      clearInterval(cpuInterval);
       clearInterval(domInterval);
-      lagInterval = null;
-      domInterval = null;
+      clearInterval(animInterval);
+      clearInterval(storageInterval);
 
-      document.querySelectorAll('.box').forEach(el => el.remove());
+      document.querySelectorAll('.box').forEach(e => e.remove());
+      boxCount = 0;
+      document.getElementById('domCount').textContent = 0;
+
+      // Clean up localStorage spam
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith('spam_')) localStorage.removeItem(k);
+      });
     }
+
+    // === Memory Tracker ===
+    setInterval(() => {
+      const used = Math.round(Object.keys(localStorage).length * 0.1); // Rough estimate: 0.1KB per key
+      document.getElementById('memUsage').textContent = used;
+    }, 1000);
   </script>
 </body>
 </html>
