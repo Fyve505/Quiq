@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Custom Search</title>
+  <style>
+    :root {
+      --primary-color: #4f46e5;
+      --bg-color: #f9fafb;
+      --text-color: #111827;
+      --border-radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 1rem;
+      background: white;
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    input[type="text"] {
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: var(--border-radius);
+      width: 300px;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--primary-color);
+      outline: none;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #3730a3;
+    }
+
+    #error {
+      color: #ef4444;
+      font-size: 1.5rem;
+      margin-top: 2rem;
+      display: none;
+    }
+
+    iframe {
+      width: 90%;
+      height: 500px;
+      margin-top: 2rem;
+      border: none;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 Modern Search Engine</h1>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Type something like :G: Hello or File..." />
+    <button onclick="performSearch()">Search</button>
+  </div>
+  <div id="error">❌ Error 404: Not Found</div>
+  <iframe id="resultFrame"></iframe>
+
+  <script>
+    function performSearch() {
+      const input = document.getElementById("searchInput").value.trim();
+      const error = document.getElementById("error");
+      const iframe = document.getElementById("resultFrame");
+
+      error.style.display = "none";
+      iframe.style.display = "none";
+
+      if (input.startsWith(":G:")) {
+        const query = encodeURIComponent(input.slice(3).trim());
+        window.location.href = `https://www.google.com/search?q=${query}`;
+      } else if (input.toLowerCase() === "file") {
+        iframe.src = "resource/web/search/file.html";
+        iframe.style.display = "block";
+      } else {
+        error.style.display = "block";
+      }
+    }
+  </script>
+</body>
+</html>
