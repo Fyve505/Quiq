@@ -384,7 +384,7 @@ function checkCaptcha() {
   fetch('resources/main-html.txt')
     .then(response => response.text())
     .then(data => {
-      document.getElementById('content').innerHTML = data;
+      document.getElementById('content').innerJS = data;
     })
     .catch(error => console.error('Error loading file:', error));
 </script>
