@@ -94,7 +94,7 @@
 <body>
   <h1>🔍 Quiq Search Engine</h1>
   <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Type something like :G: Hello or File..." />
+    <input type="text" id="searchInput" placeholder="Type something like :G: Hello or filename" />
     <button onclick="performSearch()">Search</button>
   </div>
   <div id="error">❌ Error 404: Not Found</div>
@@ -111,10 +111,12 @@
 
       if (input.startsWith(":G:")) {
         const query = encodeURIComponent(input.slice(3).trim());
-        window.open.href = `https://www.google.com/search?q=${query}`;
-      } else if (input.toLowerCase() === "file") {
-        iframe.src = "resource/web/search/file.html";
-        iframe.style.display = "block";
+        window.open(`https://www.google.com/search?q=${query}`, '_blank');
+      } else if (input !== "") {
+        const filename = input.replace(/[^a-zA-Z0-9-_]/g, ""); // basic sanitize
+        iframe.src = `resources/websearch/${filename}.html`;
+        iframe.onload = () => iframe.style.display = "block";
+        iframe.onerror = () => error.style.display = "block";
       } else {
         error.style.display = "block";
       }
