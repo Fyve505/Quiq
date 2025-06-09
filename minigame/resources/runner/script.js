@@ -1,198 +1,191 @@
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+// resources/runner/script.js
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 canvas.width = 800;
 canvas.height = 400;
 
-const startScreen = document.getElementById('start-screen');
-const lostScreen = document.getElementById('lost-screen');
-const startBtn = document.getElementById('start-btn');
-const restartBtn = document.getElementById('restart-btn');
-const finalScoreEl = document.getElementById('final-score');
-const highScoreEl = document.getElementById('high-score');
+let gameInterval, scoreInterval;
+let player, obstacles, powerUps, score, highScore;
+let keys = {};
+let grounded = true;
+let activePowerUps = {};
+let paused = false;
+let gameRunning = false;
 
-const jumpSound = document.getElementById('sound-jump');
-const pickupSound = document.getElementById('sound-pickup');
-const gameoverSound = document.getElementById('sound-gameover');
-
-let player, obstacles, powerUps, score, highScore, isGameOver, gameSpeed, keys, timer;
+// Load sounds
+const sndJump = document.getElementById("sound-jump");
+const sndPickup = document.getElementById("sound-pickup");
+const sndGameover = document.getElementById("sound-gameover");
 
 function resetGame() {
-  player = {
-    x: 50,
-    y: 300,
-    width: 40,
-    height: 40,
-    vy: 0,
-    grounded: true,
-    crouching: false,
-    doubleJump: false,
-    shield: false,
-    slowMo: false,
-    powerTimers: {}
-  };
+  player = { x: 50, y: 300, w: 40, h: 40, vy: 0, crouching: false };
   obstacles = [];
   powerUps = [];
   score = 0;
-  gameSpeed = 3;
-  keys = {};
-  isGameOver = false;
-  timer = 0;
+  grounded = true;
+  activePowerUps = {};
+  paused = false;
+  gameRunning = true;
+  document.getElementById("start-screen").style.display = "none";
+  document.getElementById("lost-screen").style.display = "none";
+  gameInterval = setInterval(updateGame, 1000 / 60);
+  scoreInterval = setInterval(() => score++, 1000);
 }
 
-function applyPowerUp(type) {
-  switch(type) {
-    case 'doubleJump':
-      player.doubleJump = true;
-      setTimeout(() => player.doubleJump = false, 8000);
-      break;
-    case 'shield':
-      player.shield = true;
-      setTimeout(() => player.shield = false, 8000);
-      break;
-    case 'slowMo':
-      gameSpeed = 1.5;
-      setTimeout(() => gameSpeed = 3, 8000);
-      break;
+function endGame() {
+  gameRunning = false;
+  clearInterval(gameInterval);
+  clearInterval(scoreInterval);
+  sndGameover.play();
+  document.getElementById("final-score").innerText = score;
+  highScore = Math.max(score, getHighScore());
+  setHighScore(highScore);
+  document.getElementById("high-score").innerText = highScore;
+  document.getElementById("lost-screen").style.display = "flex";
+}
+
+function getHighScore() {
+  return parseInt(localStorage.getItem("quiq-high-score")) || 0;
+}
+
+function setHighScore(score) {
+  localStorage.setItem("quiq-high-score", score);
+}
+
+function togglePause() {
+  if (!gameRunning) return;
+  paused = !paused;
+  if (paused) {
+    clearInterval(gameInterval);
+    clearInterval(scoreInterval);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#fff";
+    ctx.font = "30px sans-serif";
+    ctx.fillText("Paused", canvas.width / 2 - 50, canvas.height / 2);
+  } else {
+    gameInterval = setInterval(updateGame, 1000 / 60);
+    scoreInterval = setInterval(() => score++, 1000);
   }
-  pickupSound.play();
 }
 
-function spawnObstacle() {
-  const types = ['ground', 'air', 'underground'];
-  const type = types[Math.floor(Math.random() * types.length)];
-  let y;
-  switch(type) {
-    case 'ground': y = 320; break;
-    case 'air': y = 200; break;
-    case 'underground': y = 350; break;
-  }
-  obstacles.push({ x: 850, y, width: 30, height: 30 });
+function isActive(type) {
+  return activePowerUps[type] && Date.now() < activePowerUps[type];
 }
 
-function spawnPowerUp() {
-  const types = ['doubleJump', 'shield', 'slowMo'];
-  const type = types[Math.floor(Math.random() * types.length)];
-  const y = Math.random() < 0.5 ? 200 : 320;
-  powerUps.push({ x: 850, y, width: 30, height: 30, type });
-}
-
-function gameLoop() {
-  if (isGameOver) return;
+function updateGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Update score
-  score += 1 / 60;
-  ctx.fillStyle = '#fff';
-  ctx.font = '20px Arial';
-  ctx.fillText(`Score: ${Math.floor(score)}`, 10, 30);
+  // Draw player
+  ctx.fillStyle = isActive("shield") ? "#0ff" : "#fff";
+  ctx.fillRect(player.x, player.y, player.w, player.h);
 
-  // Player controls
-  if ((keys['ArrowUp'] || keys['w']) && player.grounded) {
-    player.vy = -10;
-    player.grounded = false;
-    jumpSound.play();
-  } else if ((keys['ArrowUp'] || keys['w']) && player.doubleJump && !player.grounded) {
-    player.vy = -10;
-    player.doubleJump = false;
-    jumpSound.play();
-  }
-  if (keys['ArrowDown'] || keys['s']) {
-    player.crouching = true;
-    player.height = 20;
-  } else {
-    player.crouching = false;
-    player.height = 40;
-  }
-
-  // Gravity
-  player.vy += 0.5;
+  // Gravity and jumping
+  player.vy += 1.5;
   player.y += player.vy;
   if (player.y >= 300) {
     player.y = 300;
     player.vy = 0;
-    player.grounded = true;
+    grounded = true;
+    if (!isActive("doubleJump")) doubleJumpUsed = false;
   }
 
-  // Draw player
-  ctx.fillStyle = player.shield ? '#0ff' : '#0f0';
-  ctx.fillRect(player.x, player.y, player.width, player.height);
+  // Crouch
+  if (keys["ArrowDown"] || keys["s"]) {
+    player.h = 20;
+    player.crouching = true;
+  } else {
+    player.h = 40;
+    player.crouching = false;
+  }
 
-  // Move and draw obstacles
+  // Obstacles
+  if (Math.random() < 0.02) {
+    const type = Math.floor(Math.random() * 3);
+    let obstacle = { x: 800, w: 30, h: 30, y: 300 };
+    if (type === 1) obstacle.y = 250;
+    else if (type === 2) obstacle.y = 340;
+    obstacles.push(obstacle);
+  }
+
+  ctx.fillStyle = "red";
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const obs = obstacles[i];
-    obs.x -= gameSpeed;
-    ctx.fillStyle = '#f00';
-    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-    // Collision
+    obs.x -= isActive("slowMo") ? 2 : 4;
+    ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
     if (
-      player.x < obs.x + obs.width &&
-      player.x + player.width > obs.x &&
-      player.y < obs.y + obs.height &&
-      player.y + player.height > obs.y
+      obs.x < player.x + player.w &&
+      obs.x + obs.w > player.x &&
+      obs.y < player.y + player.h &&
+      obs.y + obs.h > player.y
     ) {
-      if (player.shield) {
-        obstacles.splice(i, 1);
-        player.shield = false;
-      } else {
-        endGame();
-      }
+      if (isActive("shield")) obstacles.splice(i, 1);
+      else endGame();
     }
-    if (obs.x < -50) obstacles.splice(i, 1);
+    if (obs.x + obs.w < 0) obstacles.splice(i, 1);
   }
 
-  // Move and draw powerUps
+  // Power-ups
+  if (Math.random() < 0.01) {
+    const types = ["doubleJump", "shield", "slowMo"];
+    const type = types[Math.floor(Math.random() * types.length)];
+    powerUps.push({ x: 800, y: 250, w: 30, h: 30, type });
+  }
+
   for (let i = powerUps.length - 1; i >= 0; i--) {
     const p = powerUps[i];
-    p.x -= gameSpeed;
+    p.x -= 3;
     const img = new Image();
     img.src = `resources/runner/image/${p.type}.webp`;
-    ctx.drawImage(img, p.x, p.y, p.width, p.height);
+    ctx.drawImage(img, p.x, p.y, p.w, p.h);
     if (
-      player.x < p.x + p.width &&
-      player.x + player.width > p.x &&
-      player.y < p.y + p.height &&
-      player.y + player.height > p.y
+      p.x < player.x + player.w &&
+      p.x + p.w > player.x &&
+      p.y < player.y + player.h &&
+      p.y + p.h > player.y
     ) {
-      applyPowerUp(p.type);
+      sndPickup.play();
+      activePowerUps[p.type] = Date.now() + 10000;
       powerUps.splice(i, 1);
     }
-    if (p.x < -50) powerUps.splice(i, 1);
+    if (p.x + p.w < 0) powerUps.splice(i, 1);
   }
 
-  // Timed events
-  if (timer % 90 === 0) spawnObstacle();
-  if (timer % 300 === 0) spawnPowerUp();
-  timer++;
+  // Score
+  ctx.fillStyle = "#fff";
+  ctx.font = "16px sans-serif";
+  ctx.fillText("Score: " + score, 10, 20);
 
-  requestAnimationFrame(gameLoop);
+  // Show active power-ups
+  let y = 40;
+  for (const [key, endTime] of Object.entries(activePowerUps)) {
+    if (Date.now() < endTime) {
+      const timeLeft = Math.ceil((endTime - Date.now()) / 1000);
+      ctx.fillText(`${key} (${timeLeft}s)`, 10, y);
+      y += 20;
+    }
+  }
 }
 
-function endGame() {
-  isGameOver = true;
-  gameoverSound.play();
-  finalScoreEl.textContent = Math.floor(score);
-  highScore = Math.max(score, localStorage.getItem('runner-quiq-highscore') || 0);
-  localStorage.setItem('runner-quiq-highscore', highScore);
-  highScoreEl.textContent = Math.floor(highScore);
-  lostScreen.classList.add('show');
-}
+// Controls
+let doubleJumpUsed = false;
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    togglePause();
+    return;
+  }
+  keys[e.key] = true;
+  if ((e.key === "w" || e.key === "ArrowUp") && (grounded || (isActive("doubleJump") && !doubleJumpUsed))) {
+    player.vy = -18;
+    sndJump.play();
+    if (!grounded && isActive("doubleJump")) doubleJumpUsed = true;
+    grounded = false;
+  }
+});
 
-startBtn.onclick = () => {
-  startScreen.classList.remove('show');
-  resetGame();
-  requestAnimationFrame(gameLoop);
-};
+window.addEventListener("keyup", (e) => {
+  keys[e.key] = false;
+});
 
-restartBtn.onclick = () => {
-  lostScreen.classList.remove('show');
-  resetGame();
-  requestAnimationFrame(gameLoop);
-};
-
-document.addEventListener('keydown', (e) => (keys[e.key] = true));
-document.addEventListener('keyup', (e) => (keys[e.key] = false));
-
-// Show start screen on load
-window.onload = () => {
-  startScreen.classList.add('show');
-};
+document.getElementById("start-btn").onclick = resetGame;
+document.getElementById("restart-btn").onclick = resetGame;
