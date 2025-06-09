@@ -2,305 +2,290 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Runner - Quiq</title>
   <style>
-    * { box-sizing: border-box; }
-    body { margin:0; background:var(--bg); color:var(--fg); font-family:'Segoe UI'; overflow:hidden }
-    canvas { background:var(--bg-grad); display:block; width:100vw;height:100vh }
-    #ui,#settings{position:absolute;z-index:10;padding:15px;border-radius:10px;background:rgba(0,0,0,0.5);backdrop-filter:blur(5px)}
-    #ui{top:20px;left:20px}
-    #settings{top:20px;right:20px;width:320px;max-height:85vh;overflow:auto;display:none}
-    .btn,select,label,input[type=color],input[type=number],input[type=text]{margin:8px 0;width:100%}
-    .btn{padding:8px;border:none;border-radius:6px;background:var(--btn-bg);color:var(--btn-fg);cursor:pointer}
-    input[type=color]{padding:0;height:28px}
-    :root {--bg:#1e1e1e;--fg:#eee;--bg-grad:linear-gradient(to top,#1c1c1c,#2a2a2a);--btn-bg:#333;--btn-fg:#eee}
-    [data-theme=light]{--bg:#fafafa;--fg:#111;--bg-grad:linear-gradient(to top,#fff,#ddd);--btn-bg:#ddd;--btn-fg:#111}
-    #overlay{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);flex-direction:column;z-index:9}
-    #overlay .btn{max-width:200px}
+    :root {
+      --player-skin: linear-gradient(to top left, #00f2ff, #00b2ff);
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: radial-gradient(circle at center, #101010, #1c1c1c);
+      overflow: hidden;
+      color: white;
+    }
+    #game {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: none;
+      border: 5px solid #00f2ff;
+      box-shadow: 0 0 30px #00f2ff66;
+    }
+    .player {
+      position: absolute;
+      bottom: 20px;
+      left: 50px;
+      width: 50px;
+      height: 50px;
+      background: var(--player-skin);
+      border-radius: 12px;
+      box-shadow: 0 0 18px #00f2ffaa;
+      transition: height 0.2s;
+    }
+    .obstacle, .powerup {
+      position: absolute;
+      bottom: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+    }
+    .obstacle {
+      background-color: #ff004c;
+      animation: moveObstacle 3s linear infinite;
+      box-shadow: 0 0 10px #ff004c88;
+    }
+    .obstacle.alt {
+      bottom: 100px;
+      background-color: #ffaa00;
+    }
+    .powerup {
+      background-size: cover;
+      background-position: center;
+      animation: moveObstacle 5s linear infinite;
+    }
+    @keyframes moveObstacle {
+      0% { right: -60px; }
+      100% { right: 100vw; }
+    }
+    .jump {
+      animation: jump 0.5s ease-out;
+    }
+    @keyframes jump {
+      0% { bottom: 20px; }
+      50% { bottom: 120px; }
+      100% { bottom: 20px; }
+    }
+    .crouch {
+      height: 25px;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 20px;
+      background-color: rgba(0,0,0,0.5);
+      padding: 5px 15px;
+      border-radius: 8px;
+    }
+    #startBtn, #settingsBtn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 15px 30px;
+      font-size: 20px;
+      border: none;
+      border-radius: 10px;
+      background-color: #00f2ff;
+      color: #000;
+      cursor: pointer;
+      box-shadow: 0 0 20px #00f2ff88;
+    }
+    #settingsMenu {
+      display: none;
+      position: absolute;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #111;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px #00f2ff99;
+    }
+    #settingsMenu select, #settingsMenu button {
+      margin: 10px 0;
+      font-size: 16px;
+    }
   </style>
 </head>
-<body data-theme="dark">
-  <canvas id="gameCanvas"></canvas>
-  <div id="ui">
-    <button class="btn" onclick="togglePause()">⏯ Pause</button>
-    <button class="btn" onclick="restartGame()">🔁 Restart</button>
-    <button class="btn" onclick="toggleSettings()">⚙️ Settings</button>
-    <label>Difficulty:
-      <select id="difficultySelect" onchange="setDifficulty(this.value)">
-        <option value="5">Easy</option>
-        <option value="8" selected>Medium</option>
-        <option value="12">Hard</option>
-      </select>
-    </label>
-    <div id="scoreDisplay">Score: 0 | High: 0</div>
-    <div>🎁 Power‑Ups: <span id="powerCounts"></span></div>
+<body>
+  <button id="startBtn">Start Game</button>
+  <div id="settingsMenu">
+    <label>Player Skin:</label>
+    <select id="skinSelect">
+      <option value="linear-gradient(to top left, #00f2ff, #00b2ff)">Blue</option>
+      <option value="linear-gradient(to top left, #ff00cc, #ff8800)">Pink-Orange</option>
+      <option value="linear-gradient(to top left, #00ff88, #0044ff)">Green-Blue</option>
+    </select>
+    <br>
+    <button onclick="saveSettings()">Save Settings</button>
   </div>
-
-  <div id="settings">
-    <h3>Settings</h3>
-    <label><input type="checkbox" id="themeToggle"> Light Theme</label>
-    <label>Player Color: <input type="color" id="colorPlayer" value="#1E90FF"></label>
-    <label>Obstacle Color: <input type="color" id="colorObstacle" value="#DC143C"></label>
-    <label><input type="checkbox" id="audioToggle" checked> Sound FX</label>
-    <hr><h4>Keybindings</h4>
-    <label>Jump: <input type="text" id="keyJump" value=" " maxlength="1"></label>
-    <label>Duck: <input type="text" id="keyDuck" value="ArrowDown" maxlength="1"></label>
-    <label>Power: <input type="text" id="keyPower" value="p" maxlength="1"></label>
-    <hr><h4>Power-Ups</h4>
-    <label>Shield: <input type="number" id="countShield" min=0 max=5 value=1></label>
-    <label>Speed Boost: <input type="number" id="countSpeed" min=0 max=5 value=1></label>
-    <label>Double Points: <input type="number" id="countDouble" min=0 max=5 value=1></label>
-    <label>Double Jump: <input type="number" id="countDoubleJump" min=0 max=5 value=1></label>
-    <label>Magnet: <input type="number" id="countMagnet" min=0 max=5 value=1></label>
-    <button class="btn" onclick="applySettings()">Apply Settings</button>
+  <div id="game">
+    <div id="score">Score: 0 | High: 0</div>
+    <div class="player" id="player"></div>
+    <div class="obstacle" id="obstacle"></div>
+    <div class="obstacle alt" id="obstacle2"></div>
+    <div class="powerup" id="powerup"></div>
+    <audio id="jumpSound" src="resources/runner/sound/jump.mp3"></audio>
+    <audio id="pickupSound" src="resources/runner/sound/pickup.wav"></audio>
+    <audio id="gameOverSound" src="resources/runner/sound/gameover.mp3"></audio>
   </div>
+  <script>
+    const game = document.getElementById('game');
+    const player = document.getElementById('player');
+    const obstacle = document.getElementById('obstacle');
+    const obstacle2 = document.getElementById('obstacle2');
+    const powerup = document.getElementById('powerup');
+    const scoreEl = document.getElementById('score');
+    const startBtn = document.getElementById('startBtn');
+    const jumpSound = document.getElementById('jumpSound');
+    const pickupSound = document.getElementById('pickupSound');
+    const gameOverSound = document.getElementById('gameOverSound');
 
-  <div id="overlay">
-    <h1>Quiq - Runner</h1>
-    <p>Click or Press Jump Key</p>
-    <button class="btn" onclick="startGame()">▶ Start</button>
-  </div>
+    const skinSelect = document.getElementById('skinSelect');
+    const settingsMenu = document.getElementById('settingsMenu');
 
-<script>
-  const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
-  const S = {
-    themeToggle: document.getElementById('themeToggle'), colorPlayer: document.getElementById('colorPlayer'),
-    colorObstacle: document.getElementById('colorObstacle'), audioToggle: document.getElementById('audioToggle'),
-    keyJump: document.getElementById('keyJump'), keyDuck: document.getElementById('keyDuck'),
-    keyPower: document.getElementById('keyPower'), countShield: document.getElementById('countShield'),
-    countSpeed: document.getElementById('countSpeed'), countDouble: document.getElementById('countDouble'),
-    countDoubleJump: document.getElementById('countDoubleJump'), countMagnet: document.getElementById('countMagnet')
-  };
-  let player, obstacles, frameCount, score, highScore, gameStarted, gamePaused, obstacleSpeed, powerUps;
-  let canDoubleJump=false, magnetActive=false;
+    let score = 0;
+    let highScore = parseInt(localStorage.getItem('highScore')) || 0;
+    let doubleJump = false;
+    let canDoubleJump = false;
+    let shield = false;
+    let jumped = false;
+    let crouching = false;
+    let gameInterval;
+    let currentPower = '';
 
-  // Cookie helpers for persistent high score
-  function setCookie(name, value) {
-    const expires = new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000).toUTCString();
-    document.cookie = ${name}=${encodeURIComponent(value)}; expires=${expires}; path=/;
-  }
+    const powerList = ['doubleJump', 'shield', 'slowMo'];
 
-  function getCookie(name) {
-    return document.cookie.split('; ').reduce((r, v) => {
-      const parts = v.split('=');
-      return parts[0] === name ? decodeURIComponent(parts[1]) : r;
-    }, null);
-  }
-
-  function init(){
-    canvas.width=innerWidth;canvas.height=innerHeight;
-    player={x:50,y:canvas.height-100,w:50,h:50,vy:0,gravity:0.6,jumping:false,ducking:false};
-    obstacles=[];frameCount=0;score=0;obstacleSpeed=+document.getElementById('difficultySelect').value;
-    gameStarted=gamePaused=false;
-    highScore = parseInt(getCookie('highScore')) || 0;
-    powerUps={
-      shield:+S.countShield.value,
-      speed:+S.countSpeed.value,
-      double:+S.countDouble.value,
-      doubleJump:+S.countDoubleJump.value,
-      magnet:+S.countMagnet.value
-    };
-    updateScore();
-    updatePowerDisplay();
-  }
-
-  function updateScore(){
-    document.getElementById('scoreDisplay').textContent=Score: ${score} | High: ${highScore};
-  }
-  function updatePowerDisplay(){
-    document.getElementById('powerCounts').textContent=
-      🛡${powerUps.shield} ⚡${powerUps.speed} ✌️${powerUps.double} 🚀${powerUps.doubleJump} 🧲${powerUps.magnet};
-  }
-
-  function applySettings(){
-    document.body.setAttribute('data-theme',S.themeToggle.checked?'light':'dark');
-    updatePowerDisplay();
-    toggleSettings();
-  }
-
-  function startGame(){gameStarted=true;overlay.style.display='none';gameLoop();}
-  function restartGame(){init();overlay.style.display='none';gameLoop();}
-  function togglePause(){if(!gameStarted)return;gamePaused=!gamePaused; if(!gamePaused)gameLoop();}
-  function toggleSettings(){
-    document.getElementById('settings').style.display=
-      document.getElementById('settings').style.display==='none'?'block':'none';
-  }
-  function setDifficulty(v){
-    obstacleSpeed=+v;
-    obstacles.forEach(o=>o.speed=v);
-  }
-
-  function createObstacle(){
-    const h=Math.random()*80+30, r=Math.random(), type=r<0.4?'rect':r<0.7?'circle':'bird';
-    obstacles.push({
-      x:canvas.width,
-      y:canvas.height-(type==='rect'?h:(type==='circle'?h+20:120)),
-      w:type==='circle'?40:30,
-      h,
-      type,
-      speed:obstacleSpeed,
-      passed:false,
-      anim:0
-    });
-  }
-
-  function jump(){
-    if(!player.jumping){
-      player.vy=-15;
-      player.jumping=true;
-      canDoubleJump=true;
+    function updateScore() {
+      score++;
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('highScore', highScore);
+      }
+      scoreEl.textContent = `Score: ${score} | High: ${highScore}`;
     }
-    else if(canDoubleJump && powerUps.doubleJump>0){
-      player.vy=-15;
-      powerUps.doubleJump--;
-      canDoubleJump=false;
-      updatePowerDisplay();
-    }
-  }
 
-  function duck(on){
-    player.ducking=on;
-  }
+    function jump() {
+      if (!jumped) {
+        jumpSound.play();
+        player.classList.add('jump');
+        jumped = true;
+        setTimeout(() => {
+          player.classList.remove('jump');
+          jumped = false;
+        }, 500);
+      } else if (doubleJump && canDoubleJump) {
+        jumpSound.play();
+        player.classList.add('jump');
+        canDoubleJump = false;
+        setTimeout(() => player.classList.remove('jump'), 500);
+      }
+    }
 
-  function activatePower(){
-    if(powerUps.shield){
-      powerUps.shield--;
-      updatePowerDisplay();
-      return;
+    function crouch(on) {
+      crouching = on;
+      if (on) {
+        player.classList.add('crouch');
+      } else {
+        player.classList.remove('crouch');
+      }
     }
-    if(powerUps.speed){
-      powerUps.speed--;
-      obstacleSpeed+=3;
-      updatePowerDisplay();
-      return;
+
+    function checkCollision(a, b) {
+      const ar = a.getBoundingClientRect();
+      const br = b.getBoundingClientRect();
+      return (
+        ar.left < br.right &&
+        ar.right > br.left &&
+        ar.top < br.bottom &&
+        ar.bottom > br.top
+      );
     }
-    if(powerUps.double){
-      powerUps.double--;
+
+    function spawnPower() {
+      currentPower = powerList[Math.floor(Math.random() * powerList.length)];
+      powerup.style.backgroundImage = `url('resources/runner/image/${currentPower}.webp')`;
+      powerup.style.right = '-60px';
+    }
+
+    function gameLoop() {
       updateScore();
-      powerUps.double*=2;
-      updatePowerDisplay();
-      return;
-    }
-    if(powerUps.magnet){
-      powerUps.magnet--;
-      magnetActive=true;
-      setTimeout(()=>magnetActive=false,5000);
-      updatePowerDisplay();
-    }
-  }
-
-  canvas.addEventListener('keydown',e=>{
-    const k=e.key;
-    if(k===S.keyJump.value) jump();
-    if(k===S.keyDuck.value) duck(true);
-    if(k===S.keyPower.value) activatePower();
-  });
-  canvas.addEventListener('keyup',e=>{
-    if(e.key===S.keyDuck.value) duck(false);
-  });
-  window.addEventListener('keydown',e=>canvas.dispatchEvent(new KeyboardEvent('keydown',e)));
-  window.addEventListener('keyup',e=>canvas.dispatchEvent(new KeyboardEvent('keyup',e)));
-
-  canvas.addEventListener('click',()=>{
-    gameStarted ? jump() : startGame();
-  });
-
-  const overlay=document.getElementById('overlay');
-
-  function gameLoop(){
-    if(!gameStarted||gamePaused) return;
-
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    frameCount++;
-    if(frameCount%80===0) createObstacle();
-
-    // Player movement
-    player.y+=player.vy;
-    player.vy+=player.gravity;
-    if(player.ducking) player.h=30; else player.h=50;
-    if(player.y+player.h>=canvas.height){
-      player.y=canvas.height-player.h;
-      player.jumping=false;
-    }
-
-    ctx.fillStyle=S.colorPlayer.value;
-    ctx.fillRect(player.x,player.y,player.w,player.h);
-
-    obstacles=obstacles.filter(o=>{
-      o.x-=o.speed;
-
-      if(!o.passed && o.x + o.w < player.x){
-        score++;
-        if(score > highScore){
-          highScore = score;
-          setCookie('highScore', highScore);
+      if (checkCollision(player, obstacle) || checkCollision(player, obstacle2)) {
+        if (shield) {
+          shield = false;
+        } else {
+          gameOverSound.play();
+          alert('Game Over!');
+          location.reload();
         }
-        o.passed=true;
-        updateScore();
       }
-      if(o.x + o.w < 0) return false;
 
-      ctx.fillStyle=S.colorObstacle.value;
-      if(o.type==='rect') ctx.fillRect(o.x,o.y,o.w,o.h);
-      else if(o.type==='circle'){
-        ctx.beginPath();
-        ctx.arc(o.x,o.y+o.h/2,o.w/2,0,2*Math.PI);
-        ctx.fill();
+      if (checkCollision(player, powerup)) {
+        pickupSound.play();
+        if (currentPower === 'doubleJump') {
+          doubleJump = true;
+          canDoubleJump = true;
+          setTimeout(() => doubleJump = false, 5000);
+        } else if (currentPower === 'shield') {
+          shield = true;
+          setTimeout(() => shield = false, 5000);
+        } else if (currentPower === 'slowMo') {
+          clearInterval(gameInterval);
+          gameInterval = setInterval(gameLoop, 200);
+          setTimeout(() => {
+            clearInterval(gameInterval);
+            gameInterval = setInterval(gameLoop, 100);
+          }, 5000);
+        }
+        spawnPower();
       }
-      else{
-        ctx.beginPath();
-        ctx.moveTo(o.x,o.y+o.h/2);
-        ctx.lineTo(o.x+o.w,o.y+(o.anim%2?o.h/4:o.h*3/4));
-        ctx.lineTo(o.x+o.w,o.y+(o.anim%2?o.h*3/4:o.h/4));
-        ctx.fill();
-        o.anim++;
-      }
-      return true;
+    }
+
+    function saveSettings() {
+      const skin = skinSelect.value;
+      document.cookie = `skin=${skin}; path=/; max-age=31536000`;
+      location.reload();
+    }
+
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    const savedSkin = getCookie('skin');
+    if (savedSkin) {
+      document.documentElement.style.setProperty('--player-skin', savedSkin);
+      skinSelect.value = savedSkin;
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'ArrowUp' || e.code === 'Space') jump();
+      if (e.code === 'ArrowDown') crouch(true);
+    });
+    document.addEventListener('keyup', (e) => {
+      if (e.code === 'ArrowDown') crouch(false);
     });
 
-    // Magnet collects circles
-    if(magnetActive){
-      obstacles.forEach((o,i)=>{
-        if(o.type==='circle' && Math.hypot((o.x - player.x),(o.y - player.y)) < 200){
-          score++;
-          obstacles.splice(i,1);
-          updateScore();
-        }
-      });
-    }
+    window.addEventListener('touchstart', (e) => {
+      const touchY = e.touches[0].clientY;
+      if (touchY < window.innerHeight / 2) jump();
+      else crouch(true);
+    });
+    window.addEventListener('touchend', () => crouch(false));
 
-    // Collision
-    for(let o of obstacles){
-      if(player.x < o.x + o.w &&
-         player.x + player.w > o.x &&
-         player.y < o.y + o.h &&
-         player.y + player.h > o.y){
-
-        if(powerUps.shield){
-          powerUps.shield--;
-          updatePowerDisplay();
-          obstacles = obstacles.filter(x => x !== o);
-          break;
-        }
-        gameOver();
-        return;
-      }
-    }
-
-    requestAnimationFrame(gameLoop);
-  }
-
-  function gameOver(){
-    gameStarted=false;
-    overlay.innerHTML=
-      <h1>Game Over</h1>
-      <p>Score: ${score}</p>
-      <button class="btn" onclick="restartGame()">🔁 Restart</button>
-    ;
-    overlay.style.display='flex';
-  }
-
-  init();
-</script>
+    startBtn.addEventListener('click', () => {
+      startBtn.style.display = 'none';
+      settingsMenu.style.display = 'block';
+    });
+  </script>
 </body>
 </html>
