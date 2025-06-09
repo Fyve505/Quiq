@@ -1,1 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lag Maker 3000</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2rem;
+      background-color: #121212;
+      color: white;
+    }
+    select, button {
+      font-size: 1.2rem;
+      padding: 0.5rem;
+      margin: 1rem;
+    }
+    .box {
+      width: 10px;
+      height: 10px;
+      background: red;
+      position: absolute;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔥 Lag Maker 3000 🔥</h1>
+  <p>Select lag level and press Start!</p>
 
+  <label for="lagLevel">Lag Level:</label>
+  <select id="lagLevel">
+    <option value="low">Low</option>
+    <option value="medium">Medium</option>
+    <option value="high">High</option>
+    <option value="extreme">EXTREME</option>
+  </select>
+
+  <br>
+  <button onclick="startLag()">Start Lag</button>
+  <button onclick="stopLag()">Stop Lag</button>
+
+  <script>
+    let lagInterval = null;
+    let domInterval = null;
+
+    function heavyComputation(iterations) {
+      const start = performance.now();
+      while (performance.now() - start < iterations) {
+        Math.sqrt(Math.random() * 9999); // waste CPU cycles
+      }
+    }
+
+    function spawnBoxes(count) {
+      for (let i = 0; i < count; i++) {
+        const div = document.createElement('div');
+        div.className = 'box';
+        div.style.left = `${Math.random() * window.innerWidth}px`;
+        div.style.top = `${Math.random() * window.innerHeight}px`;
+        document.body.appendChild(div);
+      }
+    }
+
+    function startLag() {
+      const level = document.getElementById('lagLevel').value;
+
+      let cpuTime = 0;
+      let boxCount = 0;
+      let frequency = 500;
+
+      switch (level) {
+        case 'low':
+          cpuTime = 50;
+          boxCount = 10;
+          frequency = 1000;
+          break;
+        case 'medium':
+          cpuTime = 200;
+          boxCount = 100;
+          frequency = 700;
+          break;
+        case 'high':
+          cpuTime = 500;
+          boxCount = 500;
+          frequency = 400;
+          break;
+        case 'extreme':
+          cpuTime = 1000;
+          boxCount = 2000;
+          frequency = 100;
+          break;
+      }
+
+      lagInterval = setInterval(() => {
+        heavyComputation(cpuTime);
+      }, 50);
+
+      domInterval = setInterval(() => {
+        spawnBoxes(boxCount);
+      }, frequency);
+    }
+
+    function stopLag() {
+      clearInterval(lagInterval);
+      clearInterval(domInterval);
+      lagInterval = null;
+      domInterval = null;
+
+      document.querySelectorAll('.box').forEach(el => el.remove());
+    }
+  </script>
+</body>
+</html>
