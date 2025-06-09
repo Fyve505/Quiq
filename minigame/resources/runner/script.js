@@ -81,7 +81,7 @@ function updateGame() {
   ctx.fillRect(player.x, player.y, player.w, player.h);
 
   // Gravity and jumping
-  player.vy += 1.5;
+  player.vy += 1.0; // Reduced gravity for more air time
   player.y += player.vy;
   if (player.y >= 300) {
     player.y = 300;
@@ -99,8 +99,8 @@ function updateGame() {
     player.crouching = false;
   }
 
-  // Obstacles
-  if (Math.random() < 0.02) {
+  // Obstacles (reduced spawn rate)
+  if (Math.random() < 0.01) {
     const type = Math.floor(Math.random() * 3);
     let obstacle = { x: 800, w: 30, h: 30, y: 300 };
     if (type === 1) obstacle.y = 250;
@@ -125,8 +125,8 @@ function updateGame() {
     if (obs.x + obs.w < 0) obstacles.splice(i, 1);
   }
 
-  // Power-ups
-  if (Math.random() < 0.01) {
+  // Power-ups (reduced spawn rate)
+  if (Math.random() < 0.005) {
     const types = ["doubleJump", "shield", "slowMo"];
     const type = types[Math.floor(Math.random() * types.length)];
     powerUps.push({ x: 800, y: 250, w: 30, h: 30, type });
@@ -176,7 +176,7 @@ window.addEventListener("keydown", (e) => {
   }
   keys[e.key] = true;
   if ((e.key === "w" || e.key === "ArrowUp") && (grounded || (isActive("doubleJump") && !doubleJumpUsed))) {
-    player.vy = -18;
+    player.vy = -22; // Increased jump strength
     sndJump.play();
     if (!grounded && isActive("doubleJump")) doubleJumpUsed = true;
     grounded = false;
