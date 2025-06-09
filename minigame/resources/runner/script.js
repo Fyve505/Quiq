@@ -175,7 +175,7 @@ window.addEventListener("keydown", (e) => {
     return;
   }
   keys[e.key] = true;
-  if ((e.key === "w" || e.key === "ArrowUp") && (grounded || (isActive("doubleJump") && !doubleJumpUsed))) {
+  if ((e.key === "w" || e.key === "ArrowUp" || e.key === "space") && (grounded || (isActive("doubleJump") && !doubleJumpUsed))) {
     player.vy = -22; // Increased jump strength
     sndJump.play();
     if (!grounded && isActive("doubleJump")) doubleJumpUsed = true;
