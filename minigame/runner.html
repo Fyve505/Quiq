@@ -4,288 +4,32 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Runner - Quiq</title>
-  <style>
-    :root {
-      --player-skin: linear-gradient(to top left, #00f2ff, #00b2ff);
-    }
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: radial-gradient(circle at center, #101010, #1c1c1c);
-      overflow: hidden;
-      color: white;
-    }
-    #game {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      display: none;
-      border: 5px solid #00f2ff;
-      box-shadow: 0 0 30px #00f2ff66;
-    }
-    .player {
-      position: absolute;
-      bottom: 20px;
-      left: 50px;
-      width: 50px;
-      height: 50px;
-      background: var(--player-skin);
-      border-radius: 12px;
-      box-shadow: 0 0 18px #00f2ffaa;
-      transition: height 0.2s;
-    }
-    .obstacle, .powerup {
-      position: absolute;
-      bottom: 20px;
-      width: 50px;
-      height: 50px;
-      border-radius: 10px;
-    }
-    .obstacle {
-      background-color: #ff004c;
-      animation: moveObstacle 3s linear infinite;
-      box-shadow: 0 0 10px #ff004c88;
-    }
-    .obstacle.alt {
-      bottom: 100px;
-      background-color: #ffaa00;
-    }
-    .powerup {
-      background-size: cover;
-      background-position: center;
-      animation: moveObstacle 5s linear infinite;
-    }
-    @keyframes moveObstacle {
-      0% { right: -60px; }
-      100% { right: 100vw; }
-    }
-    .jump {
-      animation: jump 0.5s ease-out;
-    }
-    @keyframes jump {
-      0% { bottom: 20px; }
-      50% { bottom: 120px; }
-      100% { bottom: 20px; }
-    }
-    .crouch {
-      height: 25px;
-    }
-    #score {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      font-size: 20px;
-      background-color: rgba(0,0,0,0.5);
-      padding: 5px 15px;
-      border-radius: 8px;
-    }
-    #startBtn, #settingsBtn {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      padding: 15px 30px;
-      font-size: 20px;
-      border: none;
-      border-radius: 10px;
-      background-color: #00f2ff;
-      color: #000;
-      cursor: pointer;
-      box-shadow: 0 0 20px #00f2ff88;
-    }
-    #settingsMenu {
-      display: none;
-      position: absolute;
-      top: 10%;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #111;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px #00f2ff99;
-    }
-    #settingsMenu select, #settingsMenu button {
-      margin: 10px 0;
-      font-size: 16px;
-    }
-  </style>
+  <link rel="stylesheet" href="resources/runner/style.css" />
 </head>
 <body>
-  <button id="startBtn">Start Game</button>
-  <div id="settingsMenu">
-    <label>Player Skin:</label>
-    <select id="skinSelect">
-      <option value="linear-gradient(to top left, #00f2ff, #00b2ff)">Blue</option>
-      <option value="linear-gradient(to top left, #ff00cc, #ff8800)">Pink-Orange</option>
-      <option value="linear-gradient(to top left, #00ff88, #0044ff)">Green-Blue</option>
-    </select>
-    <br>
-    <button onclick="saveSettings()">Save Settings</button>
+  <div id="start-screen">
+    <h1>Runner - Quiq</h1>
+    <p>Controls:</p>
+    <ul>
+      <li>Jump: W / ↑</li>
+      <li>Crouch: S / ↓</li>
+    </ul>
+    <button id="start-btn">Start Game</button>
   </div>
-  <div id="game">
-    <div id="score">Score: 0 | High: 0</div>
-    <div class="player" id="player"></div>
-    <div class="obstacle" id="obstacle"></div>
-    <div class="obstacle alt" id="obstacle2"></div>
-    <div class="powerup" id="powerup"></div>
-    <audio id="jumpSound" src="resources/runner/sound/jump.mp3"></audio>
-    <audio id="pickupSound" src="resources/runner/sound/pickup.wav"></audio>
-    <audio id="gameOverSound" src="resources/runner/sound/gameover.mp3"></audio>
+
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="lost-screen">
+    <h2>Game Over</h2>
+    <p>Your Score: <span id="final-score"></span></p>
+    <p>High Score: <span id="high-score"></span></p>
+    <button id="restart-btn">Restart</button>
   </div>
-  <script>
-    const game = document.getElementById('game');
-    const player = document.getElementById('player');
-    const obstacle = document.getElementById('obstacle');
-    const obstacle2 = document.getElementById('obstacle2');
-    const powerup = document.getElementById('powerup');
-    const scoreEl = document.getElementById('score');
-    const startBtn = document.getElementById('startBtn');
-    const jumpSound = document.getElementById('jumpSound');
-    const pickupSound = document.getElementById('pickupSound');
-    const gameOverSound = document.getElementById('gameOverSound');
 
-    const skinSelect = document.getElementById('skinSelect');
-    const settingsMenu = document.getElementById('settingsMenu');
+  <audio id="sound-jump" src="resources/runner/sound/jump.mp3"></audio>
+  <audio id="sound-pickup" src="resources/runner/sound/pickup.wav"></audio>
+  <audio id="sound-gameover" src="resources/runner/sound/gameover.mp3"></audio>
 
-    let score = 0;
-    let highScore = parseInt(localStorage.getItem('highScore')) || 0;
-    let doubleJump = false;
-    let canDoubleJump = false;
-    let shield = false;
-    let jumped = false;
-    let crouching = false;
-    let gameInterval;
-    let currentPower = '';
-
-    const powerList = ['doubleJump', 'shield', 'slowMo'];
-
-    function updateScore() {
-      score++;
-      if (score > highScore) {
-        highScore = score;
-        localStorage.setItem('highScore', highScore);
-      }
-      scoreEl.textContent = `Score: ${score} | High: ${highScore}`;
-    }
-
-    function jump() {
-      if (!jumped) {
-        jumpSound.play();
-        player.classList.add('jump');
-        jumped = true;
-        setTimeout(() => {
-          player.classList.remove('jump');
-          jumped = false;
-        }, 500);
-      } else if (doubleJump && canDoubleJump) {
-        jumpSound.play();
-        player.classList.add('jump');
-        canDoubleJump = false;
-        setTimeout(() => player.classList.remove('jump'), 500);
-      }
-    }
-
-    function crouch(on) {
-      crouching = on;
-      if (on) {
-        player.classList.add('crouch');
-      } else {
-        player.classList.remove('crouch');
-      }
-    }
-
-    function checkCollision(a, b) {
-      const ar = a.getBoundingClientRect();
-      const br = b.getBoundingClientRect();
-      return (
-        ar.left < br.right &&
-        ar.right > br.left &&
-        ar.top < br.bottom &&
-        ar.bottom > br.top
-      );
-    }
-
-    function spawnPower() {
-      currentPower = powerList[Math.floor(Math.random() * powerList.length)];
-      powerup.style.backgroundImage = `url('resources/runner/image/${currentPower}.webp')`;
-      powerup.style.right = '-60px';
-    }
-
-    function gameLoop() {
-      updateScore();
-      if (checkCollision(player, obstacle) || checkCollision(player, obstacle2)) {
-        if (shield) {
-          shield = false;
-        } else {
-          gameOverSound.play();
-          alert('Game Over!');
-          location.reload();
-        }
-      }
-
-      if (checkCollision(player, powerup)) {
-        pickupSound.play();
-        if (currentPower === 'doubleJump') {
-          doubleJump = true;
-          canDoubleJump = true;
-          setTimeout(() => doubleJump = false, 5000);
-        } else if (currentPower === 'shield') {
-          shield = true;
-          setTimeout(() => shield = false, 5000);
-        } else if (currentPower === 'slowMo') {
-          clearInterval(gameInterval);
-          gameInterval = setInterval(gameLoop, 200);
-          setTimeout(() => {
-            clearInterval(gameInterval);
-            gameInterval = setInterval(gameLoop, 100);
-          }, 5000);
-        }
-        spawnPower();
-      }
-    }
-
-    function saveSettings() {
-      const skin = skinSelect.value;
-      document.cookie = `skin=${skin}; path=/; max-age=31536000`;
-      location.reload();
-    }
-
-    function getCookie(name) {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop().split(';').shift();
-    }
-
-    const savedSkin = getCookie('skin');
-    if (savedSkin) {
-      document.documentElement.style.setProperty('--player-skin', savedSkin);
-      skinSelect.value = savedSkin;
-    }
-
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'ArrowUp' || e.code === 'Space') jump();
-      if (e.code === 'ArrowDown') crouch(true);
-    });
-    document.addEventListener('keyup', (e) => {
-      if (e.code === 'ArrowDown') crouch(false);
-    });
-
-    window.addEventListener('touchstart', (e) => {
-      const touchY = e.touches[0].clientY;
-      if (touchY < window.innerHeight / 2) jump();
-      else crouch(true);
-    });
-    window.addEventListener('touchend', () => crouch(false));
-
-    startBtn.addEventListener('click', () => {
-      startBtn.style.display = 'none';
-      settingsMenu.style.display = 'block';
-    });
-  </script>
+  <script src="resources/runner/script.js"></script>
 </body>
 </html>
