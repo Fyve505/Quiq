@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Custom Search</title>
+  <title>Search - Quiq</title>
   <style>
     :root {
       --primary-color: #4f46e5;
@@ -92,7 +92,7 @@
   </style>
 </head>
 <body>
-  <h1>🔍 Modern Search Engine</h1>
+  <h1>🔍 Quiq Search Engine</h1>
   <div class="search-box">
     <input type="text" id="searchInput" placeholder="Type something like :G: Hello or File..." />
     <button onclick="performSearch()">Search</button>
@@ -111,7 +111,7 @@
 
       if (input.startsWith(":G:")) {
         const query = encodeURIComponent(input.slice(3).trim());
-        window.location.href = `https://www.google.com/search?q=${query}`;
+        window.open.href = `https://www.google.com/search?q=${query}`;
       } else if (input.toLowerCase() === "file") {
         iframe.src = "resource/web/search/file.html";
         iframe.style.display = "block";
