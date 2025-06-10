@@ -373,21 +373,20 @@ function checkCaptcha() {
 
 <!-- extra --!>
 <!-- 1 -->
-  <script src="resources/right-click.js"></script>
-<!-- 2 -->
 <noscript>
   <p style="color: red; font-weight: bold;">
     This website needs JavaScript to work!
   </p>
 </noscript>
+<div id="content"></div>
+
 <script>
-  fetch('resources/main-html.txt')
+  fetch('resources/main.txt')
     .then(response => response.text())
     .then(data => {
-      const script = document.createElement('script');
-      script.textContent = data;
-      document.body.appendChild(script);
+      document.getElementById('content').innerHTML = data;
     })
     .catch(error => console.error('Error loading file:', error));
 </script>
+
 
