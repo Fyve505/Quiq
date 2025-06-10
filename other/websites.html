@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Quick Links</title>
+  <title>Quick-Links - Quiq</title>
   <style>
     body {
       background-color: #f9f9f9;
@@ -17,7 +17,6 @@
       font-size: 16px;
       font-weight: bold;
       color: #fff;
-      background: linear-gradient(135deg, #3498db, #2980b9);
       border: none;
       border-radius: 8px;
       cursor: pointer;
@@ -27,15 +26,50 @@
     }
 
     .pro-button:hover {
-      background: linear-gradient(135deg, #2980b9, #3498db);
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
       transform: scale(1.05);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+    }
+
+    .blue-button {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+    }
+
+    .blue-button:hover {
+      background: linear-gradient(135deg, #2980b9, #3498db);
+    }
+
+    .yellow-button {
+      background: linear-gradient(135deg, #f1c40f, #f39c12);
+    }
+
+    .yellow-button:hover {
+      background: linear-gradient(135deg, #f39c12, #f1c40f);
+    }
+
+    .purple-gradient-button {
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+    }
+
+    .purple-gradient-button:hover {
+      background: linear-gradient(135deg, #2575fc, #6a11cb);
+    }
+
+    .close-button {
+      background: #e74c3c;
+      margin-top: 40px;
+    }
+
+    .close-button:hover {
+      background: #c0392b;
     }
   </style>
 </head>
 <body>
-  <a class="pro-button" href="https://use-less-stuff.mozellosite.com/home" target="_blank">Use-less-stuff</a>
-  <a class="pro-button" href="https://banana-web-6.mozellosite.com/" target="_blank">Banana-Web-6</a>
-  <a class="pro-button" href="https://extra-quiq.netlify.app" target="_blank">Extra-Quiq</a>
+  <a class="pro-button blue-button" href="https://use-less-stuff.mozellosite.com/home" target="_blank">Use-less-stuff</a>
+  <a class="pro-button yellow-button" href="https://banana-web-6.mozellosite.com/" target="_blank">Banana-Web-6</a>
+  <a class="pro-button purple-gradient-button" href="https://extra-quiq.netlify.app" target="_blank">Extra-Quiq</a>
+
+  <br>
+  <button class="pro-button close-button" onclick="window.close()">Close Page</button>
 </body>
 </html>
