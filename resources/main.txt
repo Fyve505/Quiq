@@ -1,2 +1,2 @@
-<script src="stuff/right-click.js"></script>
-<script src="stuff/No-Scroll.js"></script>
+<script src="/stuff/right-click.js"></script>
+<script src="/stuff/No-Scroll.js"></script>
