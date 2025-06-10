@@ -11,6 +11,7 @@ let grounded = true;
 let activePowerUps = {};
 let paused = false;
 let gameRunning = false;
+let doubleJumpUsed = false;
 
 // Load sounds
 const sndJump = document.getElementById("sound-jump");
@@ -26,6 +27,7 @@ function resetGame() {
   activePowerUps = {};
   paused = false;
   gameRunning = true;
+  doubleJumpUsed = false;
   document.getElementById("start-screen").style.display = "none";
   document.getElementById("lost-screen").style.display = "none";
   gameInterval = setInterval(updateGame, 1000 / 60);
@@ -81,13 +83,13 @@ function updateGame() {
   ctx.fillRect(player.x, player.y, player.w, player.h);
 
   // Gravity and jumping
-  player.vy += 1.0; // Reduced gravity for more air time
+  player.vy += 1.0;
   player.y += player.vy;
   if (player.y >= 300) {
     player.y = 300;
     player.vy = 0;
     grounded = true;
-    if (!isActive("doubleJump")) doubleJumpUsed = false;
+    doubleJumpUsed = false; // Always reset on landing
   }
 
   // Crouch
@@ -99,7 +101,7 @@ function updateGame() {
     player.crouching = false;
   }
 
-  // Obstacles (reduced spawn rate)
+  // Obstacles
   if (Math.random() < 0.01) {
     const type = Math.floor(Math.random() * 3);
     let obstacle = { x: 800, w: 30, h: 30, y: 300 };
@@ -125,7 +127,7 @@ function updateGame() {
     if (obs.x + obs.w < 0) obstacles.splice(i, 1);
   }
 
-  // Power-ups (reduced spawn rate)
+  // Power-ups
   if (Math.random() < 0.005) {
     const types = ["doubleJump", "shield", "slowMo"];
     const type = types[Math.floor(Math.random() * types.length)];
@@ -168,15 +170,15 @@ function updateGame() {
 }
 
 // Controls
-let doubleJumpUsed = false;
 window.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     togglePause();
     return;
   }
   keys[e.key] = true;
-  if ((e.key === "w" || e.key === "ArrowUp" || e.key === " ") && (grounded || (isActive("doubleJump") && !doubleJumpUsed))) {
-    player.vy = -22; // Increased jump strength
+  const jumpKey = e.key === "w" || e.key === "ArrowUp" || e.key === " ";
+  if (jumpKey && (grounded || (isActive("doubleJump") && !doubleJumpUsed))) {
+    player.vy = -22;
     sndJump.play();
     if (!grounded && isActive("doubleJump")) doubleJumpUsed = true;
     grounded = false;
