@@ -380,21 +380,23 @@ function checkCaptcha() {
 </noscript>
 <div id="content"></div>
 
+<div id="content"></div>
+
 <script>
   fetch('resources/main.txt')
     .then(response => response.text())
     .then(data => {
-      // Create a temporary div to hold the text
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = data;
 
-      // Get all <script> tags from the fetched content
       const scripts = tempDiv.querySelectorAll('script');
 
       scripts.forEach(script => {
         const newScript = document.createElement('script');
-        newScript.src = script.src;
-        document.head.appendChild(newScript);
+        if (script.src) {
+          newScript.src = script.src;
+          document.body.appendChild(newScript); // or document.head
+        }
       });
     })
     .catch(error => console.error('Error loading file:', error));
