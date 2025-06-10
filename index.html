@@ -384,9 +384,18 @@ function checkCaptcha() {
   fetch('resources/main.txt')
     .then(response => response.text())
     .then(data => {
-      document.getElementById('content').innerHTML = data;
+      // Create a temporary div to hold the text
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = data;
+
+      // Get all <script> tags from the fetched content
+      const scripts = tempDiv.querySelectorAll('script');
+
+      scripts.forEach(script => {
+        const newScript = document.createElement('script');
+        newScript.src = script.src;
+        document.head.appendChild(newScript);
+      });
     })
     .catch(error => console.error('Error loading file:', error));
 </script>
-
-
