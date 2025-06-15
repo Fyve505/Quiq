@@ -101,7 +101,12 @@
       iframe.src = url;
 
       iframe.onload = () => {
-        iframe.contentWindow.postMessage({ html }, url);
+        try {
+          iframe.contentWindow.postMessage({ html }, new URL(url).origin);
+          console.log("Sent HTML to:", url);
+        } catch (e) {
+          console.error("Failed to send message:", e);
+        }
       };
     }
   </script>
