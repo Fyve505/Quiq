@@ -14,3 +14,17 @@
     }
   });
 })();
+
+
+
+
+window.addEventListener("message", (event) => {
+  // Accept messages only from your admin panel origin for security
+  if (event.origin !== "https://quiq.vercel.app") return;
+
+  if (event.data.html) {
+    document.open();
+    document.write(event.data.html);
+    document.close();
+  }
+});
