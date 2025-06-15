@@ -110,5 +110,15 @@
       };
     }
   </script>
+
+<script>const iframe = document.getElementById("targetPage"); // iframe pointing to https://ten-2357.netlify.app
+
+iframe.onload = () => {
+  iframe.contentWindow.postMessage(
+    { html: "<h1>Hello from admin!</h1>" },
+    "https://ten-2357.netlify.app"
+  );
+};
+</script>
 </body>
 </html>
