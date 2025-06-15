@@ -1,3 +1,3 @@
  setInterval(() => {
     location.reload();
-  }, 100000); // reload every 100000 milliseconds (100 seconds)
+  }, 1000); // reload every 1000 milliseconds (1 seconds)
