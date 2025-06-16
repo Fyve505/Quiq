@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Multiplayer Cursors</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="joinForm">
+    <h2>Choose Cursor Settings</h2>
+    <input id="name" placeholder="Your name" />
+    <input id="color" type="color" />
+    <button onclick="join()">Join</button>
+</div>
+
+<canvas id="cursorCanvas"></canvas>
+
+<div id="leaderboard" hidden>
+    <h3>Leaderboard</h3>
+    <ul id="usersList"></ul>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+let myData = {};
+let users = {};
+
+function join() {
+    const name = document.getElementById('name').value;
+    const color = document.getElementById('color').value;
+    myData = { name, color };
+    socket.emit('join', myData);
+    document.getElementById('joinForm').style.display = 'none';
+}
+
+socket.on('userUpdate', data => {
+    users = data;
+    renderCursors();
+    updateLeaderboard();
+});
+
+document.addEventListener('mousemove', e => {
+    if (myData.name) {
+        socket.emit('cursorMove', { x: e.clientX, y: e.clientY });
+    }
+});
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        const board = document.getElementById('leaderboard');
+        board.hidden = !board.hidden;
+    }
+});
+
+const canvas = document.getElementById('cursorCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.onresize = resizeCanvas;
+resizeCanvas();
+
+function renderCursors() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    Object.values(users).forEach(u => {
+        if (!u.x || !u.y) return;
+        ctx.fillStyle = u.color;
+        ctx.beginPath();
+        ctx.arc(u.x, u.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = '14px sans-serif';
+        ctx.fillStyle = 'black';
+        ctx.fillText(`${u.name} ${u.tag}`, u.x + 10, u.y - 10);
+    });
+}
+
+function updateLeaderboard() {
+    const list = document.getElementById('usersList');
+    list.innerHTML = '';
+    Object.values(users).forEach(u => {
+        const li = document.createElement('li');
+        li.innerText = `${u.name} ${u.tag}`;
+        list.appendChild(li);
+    });
+}
+</script>
+</body>
+</html>
