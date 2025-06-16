@@ -118,7 +118,7 @@
   svg.appendChild(img);
 
   const p = document.createElement('p');
-  p.textContent = 'Quiq  quiq.vercel.app';
+  p.textContent = 'Quiq - Site quiq.vercel.app';
 
   link.appendChild(svg);
   link.appendChild(p);
