@@ -70,14 +70,14 @@
       if (hashed === correctHash) {
         document.body.innerHTML = ''; // Clear page
         const iframe = document.createElement('iframe');
-        iframe.src = 'parent-dir/admin/index.html';
+        iframe.src = '../admin/index.html';
         document.body.appendChild(iframe);
       } else {
         console.warn("❌ Incorrect code.");
       }
     }
 
-    console.log("%c🔒 To unlock admin access, run: unlock('your-password')", "color: green; font-size: 16px");
+    console.log("%c To unlock admin access, run: unlock('your-password')", "color: green; font-size: 16px");
   </script>
 </body>
 </html>
