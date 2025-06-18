@@ -66,7 +66,7 @@
 
     async function unlock(code) {
       const hashed = await hashCode(code);
-      const correctHash = "e91b1758713084398ee830c14d406fddb5fa12db7c16608f8e37088554983578"; // SHA-256 of "opensesame"
+      const correctHash = "e7cf3ef4f17c3999a94f2c6f612e8a888e5b1026878e4e19398b23bd38ec221a"; // SHA-256 of "opensesame"
       if (hashed === correctHash) {
         document.body.innerHTML = ''; // Clear page
         const iframe = document.createElement('iframe');
