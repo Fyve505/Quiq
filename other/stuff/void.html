@@ -48,38 +48,6 @@
     background: var(--highlight); color: #000;
     box-shadow: 0 0 15px var(--highlight);
   }
-  .overlay {
-    position: absolute; inset: 0;
-    background: rgba(10, 0, 15, 0.8);
-    display: flex; flex-direction: column;
-    justify-content: center; align-items: center;
-    z-index: 10; border-radius: 12px;
-    backdrop-filter: blur(4px);
-    animation: pulse 2s infinite;
-  }
-  .overlay h2 {
-    font-size: 2rem; color: #fff;
-    text-shadow: 0 0 10px var(--highlight);
-  }
-  .overlay p, .overlay .countdown, .overlay .nextstreams {
-    color: var(--text-faded); font-size: 1.1rem; text-align: center;
-  }
-  .overlay svg {
-    width: 80px; height: 80px; margin-bottom: 15px;
-    animation: rock 2s infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { background: rgba(10, 0, 15, 0.8); }
-    50% { background: rgba(20, 0, 30, 0.6); }
-  }
-  @keyframes rock {
-    0%, 100% { transform: rotate(-5deg); }
-    50% { transform: rotate(5deg); }
-  }
-  .glow {
-    border: 4px solid var(--highlight);
-    box-shadow: 0 0 20px var(--highlight);
-  }
   @media (max-width: 900px) {
     .stream-wrapper {
       flex-direction: column;
@@ -94,18 +62,7 @@
 <div class="container">
   <h1>🎮 VoidTernity Live</h1>
   <div class="stream-wrapper">
-    <div id="twitch-embed">
-      <div id="overlay" class="overlay">
-        <svg viewBox="0 0 64 64">
-          <path fill="var(--highlight)"
-            d="M32 2l8 24-24 8 8-24zm0 60l12-12-24-8 12 20z" />
-        </svg>
-        <h2 id="overlay-title">Stream is Offline</h2>
-        <p id="overlay-text">Follow to get notified!</p>
-        <p class="countdown" id="countdown"></p>
-        <p class="nextstreams" id="nextstreams"></p>
-      </div>
-    </div>
+    <div id="twitch-embed"></div>
     <iframe id="twitch-chat"
       src="https://www.twitch.tv/embed/voidternity/chat?darkpopout"
       frameborder="0" allowfullscreen></iframe>
@@ -118,7 +75,6 @@
 
 <script src="https://player.twitch.tv/js/embed/v1.js"></script>
 <script>
-  // Just create a simple Twitch player embed with no API/token logic
   new Twitch.Player("twitch-embed", {
     channel: "voidternity"
   });
