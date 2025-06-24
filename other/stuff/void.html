@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoidTernity Live</title>
+<style>
+  :root {
+    --bg: #0a0a0a; --glass-bg: rgba(20,20,20,0.4); --border: rgba(166,77,255,0.3);
+    --highlight: #a64dff; --text: #eee; --text-faded: #999;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body {
+    background: radial-gradient(circle at top left, #180018,var(--bg));
+    font-family:'Segoe UI',sans-serif;
+    display:flex;justify-content:center;align-items:center;
+    height:100vh;color:var(--text);overflow:hidden;
+  }
+  .container {
+    max-width:1100px;width:95%;padding:30px;
+    background:var(--glass-bg);border:1px solid var(--border);
+    border-radius:20px;backdrop-filter:blur(12px);
+    box-shadow:0 0 35px rgba(166,77,255,0.2);
+    display:flex;flex-direction:column;align-items:center;
+  }
+  h1 {font-size:2.2rem;color:var(--highlight);
+    text-shadow:0 0 10px rgba(166,77,255,0.5);margin-bottom:20px;}
+  .stream-wrapper {position:relative;display:flex;width:100%;gap:20px;}
+  #twitch-embed, #twitch-chat {
+    flex:1;min-height:500px;border-radius:12px;overflow:hidden;
+  }
+  #twitch-chat {min-width:350px;display:none;}
+  .toggle-bar {margin-top:20px;display:flex;gap:15px;}
+  .btn {
+    padding:12px 22px;border:2px solid var(--highlight);
+    background:transparent;color:var(--highlight);
+    border-radius:8px;cursor:pointer;transition:0.3s;
+  }
+  .btn:hover {
+    background:var(--highlight);color:#000;
+    box-shadow:0 0 15px var(--highlight);
+  }
+  .overlay {
+    position:absolute;inset:0;
+    background:rgba(10,0,15,0.8);
+    display:flex;flex-direction:column;
+    justify-content:center;align-items:center;
+    z-index:10;border-radius:12px;
+    backdrop-filter:blur(4px);
+    animation:pulse 2s infinite;
+  }
+  .overlay h2 {font-size:2rem;color:#fff;
+    text-shadow:0 0 10px var(--highlight);}
+  .overlay p, .overlay .countdown, .overlay .nextstreams {
+    color:var(--text-faded);font-size:1.1rem;text-align:center;
+  }
+  .overlay svg {width:80px;height:80px;margin-bottom:15px;
+    animation:rock 2s infinite;}
+  @keyframes pulse {
+    0%,100%{background:rgba(10,0,15,0.8);}
+    50%{background:rgba(20,0,30,0.6);}
+  }
+  @keyframes rock {
+    0%,100%{transform:rotate(-5deg);}
+    50%{transform:rotate(5deg);}
+  }
+  .glow {border:4px solid var(--highlight);box-shadow:0 0 20px var(--highlight);}
+  @media(max-width:900px){.stream-wrapper{flex-direction:column;}
+    #twitch-chat{min-width:unset;}}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🎮 VoidTernity Live</h1>
+  <div class="stream-wrapper">
+    <div id="twitch-embed">
+      <div id="overlay" class="overlay">
+        <svg viewBox="0 0 64 64"><path fill="var(--highlight)"
+          d="M32 2l8 24-24 8 8-24zm0 60l12-12-24-8 12 20z"/></svg>
+        <h2 id="overlay-title">Stream is Offline</h2>
+        <p id="overlay-text">Follow to get notified!</p>
+        <p class="countdown" id="countdown"></p>
+        <p class="nextstreams" id="nextstreams"></p>
+      </div>
+    </div>
+    <iframe id="twitch-chat"
+      src="https://www.twitch.tv/embed/voidternity/chat?darkpopout"
+      frameborder="0" allowfullscreen></iframe>
+  </div>
+  <div class="toggle-bar">
+    <button class="btn" onclick="toggleChat()">Toggle Chat</button>
+    <button class="btn" onclick="toggleTheme()">Toggle Theme</button>
+  </div>
+</div>
+
+<script src="https://player.twitch.tv/js/embed/v1.js"></script>
+<script>
+  const CID = 'YOUR_CLIENT_ID';
+  const SECRET = 'YOUR_CLIENT_SECRET';
+  const USER = 'voidternity';
+  const SCHEDULE = [
+    new Date('2025-06-24T18:00:00Z'),
+    new Date('2025-06-26T18:00:00Z'),
+    new Date('2025-06-28T18:00:00Z')
+  ];
+
+  let access = '', player;
+  async function refreshToken(){
+    const resp = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${CID}&client_secret=${SECRET}&grant_type=client_credentials`, {method:'POST'});
+    const data = await resp.json();
+    access = data.access_token;
+  }
+  refreshToken();
+  setInterval(refreshToken, 55*60*1000);
+
+  function initPlayer(){
+    player = new Twitch.Player("twitch-embed",{channel:USER,parent:["localhost","192.168.1.52"],layout:"video",width:"100%",height:"100%"});
+    player.addEventListener(Twitch.Player.READY,updateOverlay);
+  }
+  initPlayer();
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    updateOverlay();
+    setInterval(updateOverlay,15000);
+  });
+
+  function toggleChat(){
+    const c=document.getElementById('twitch-chat');
+    c.style.display = c.style.display==='block'?'none':'block';
+  }
+  function toggleTheme(){
+    const r=document.documentElement;
+    const bg=getComputedStyle(r).getPropertyValue('--bg').trim();
+    r.style.setProperty('--bg',bg==='#0a0a0a'?'#f1f1f1':'#0a0a0a');
+    r.style.setProperty('--glass-bg',bg==='#0a0a0a'?'rgba(255,255,255,0.3)':'rgba(20,20,20,0.4)');
+    r.style.setProperty('--text',bg==='#0a0a0a'?'#111':'#eee');
+  }
+
+  async function updateOverlay(){
+    const res=await fetch(`https://api.twitch.tv/helix/streams?user_login=${USER}`,{headers:{'Client-ID':CID,'Authorization':'Bearer '+access}});
+    const d=await res.json();
+    const nl=SCHEDULE.filter(t=>t>new Date());
+    const next=nl.length?nl[0]:null;
+    const over=document.getElementById('overlay'),
+          t=document.getElementById('overlay-title'),
+          txt=document.getElementById('overlay-text'),
+          cd=document.getElementById('countdown'),
+          ns=document.getElementById('nextstreams');
+
+    const now=new Date(), live=d.data?.length>0;
+    if(live){
+      over.style.display='none';
+      document.getElementById('twitch-embed').classList.add('glow');
+    } else {
+      over.style.display='flex';
+      document.getElementById('twitch-embed').classList.remove('glow');
+      if(next){
+        const diff=next-now;
+        const mins=Math.floor(diff/60000), secs=Math.floor(diff%60000/1000).toString().padStart(2,'0');
+        t.textContent = diff>0 && diff<=30*60000 ? 'Starting Soon!' : 'Stream Offline';
+        txt.textContent = diff>0 && diff<=30*60000 ? 'Going live in:' : 'Upcoming stream at:';
+        cd.textContent = diff>0 && diff<=30*60000 ? `${mins}:${secs}` : '';
+        ns.textContent = diff>0? next.toUTCString().replace(' GMT','') : '';
+      } else {
+        t.textContent = 'Stream is Offline';
+        txt.textContent = 'Follow for notifications!';
+        cd.textContent='';ns.textContent='';
+      }
+    }
+  }
+</script>
+</body>
+</html>
