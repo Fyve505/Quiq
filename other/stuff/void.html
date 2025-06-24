@@ -104,6 +104,7 @@
   ];
 
   let access = '', player;
+
   async function refreshToken(){
     const resp = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${CID}&client_secret=${SECRET}&grant_type=client_credentials`, {method:'POST'});
     const data = await resp.json();
@@ -113,57 +114,71 @@
   setInterval(refreshToken, 55*60*1000);
 
   function initPlayer(){
-    player = new Twitch.Player("twitch-embed",{channel:USER,parent:["localhost","192.168.1.52"],layout:"video",width:"100%",height:"100%"});
-    player.addEventListener(Twitch.Player.READY,updateOverlay);
+    player = new Twitch.Player("twitch-embed", {
+      channel: USER,
+      layout: "video",
+      width: "100%",
+      height: "100%"
+      // parent removed here
+    });
+    player.addEventListener(Twitch.Player.READY, updateOverlay);
   }
   initPlayer();
 
-  document.addEventListener('DOMContentLoaded',()=>{
+  document.addEventListener('DOMContentLoaded', () => {
     updateOverlay();
-    setInterval(updateOverlay,15000);
+    setInterval(updateOverlay, 15000);
   });
 
   function toggleChat(){
-    const c=document.getElementById('twitch-chat');
-    c.style.display = c.style.display==='block'?'none':'block';
+    const c = document.getElementById('twitch-chat');
+    c.style.display = c.style.display === 'block' ? 'none' : 'block';
   }
+
   function toggleTheme(){
-    const r=document.documentElement;
-    const bg=getComputedStyle(r).getPropertyValue('--bg').trim();
-    r.style.setProperty('--bg',bg==='#0a0a0a'?'#f1f1f1':'#0a0a0a');
-    r.style.setProperty('--glass-bg',bg==='#0a0a0a'?'rgba(255,255,255,0.3)':'rgba(20,20,20,0.4)');
-    r.style.setProperty('--text',bg==='#0a0a0a'?'#111':'#eee');
+    const r = document.documentElement;
+    const bg = getComputedStyle(r).getPropertyValue('--bg').trim();
+    r.style.setProperty('--bg', bg === '#0a0a0a' ? '#f1f1f1' : '#0a0a0a');
+    r.style.setProperty('--glass-bg', bg === '#0a0a0a' ? 'rgba(255,255,255,0.3)' : 'rgba(20,20,20,0.4)');
+    r.style.setProperty('--text', bg === '#0a0a0a' ? '#111' : '#eee');
   }
 
   async function updateOverlay(){
-    const res=await fetch(`https://api.twitch.tv/helix/streams?user_login=${USER}`,{headers:{'Client-ID':CID,'Authorization':'Bearer '+access}});
-    const d=await res.json();
-    const nl=SCHEDULE.filter(t=>t>new Date());
-    const next=nl.length?nl[0]:null;
-    const over=document.getElementById('overlay'),
-          t=document.getElementById('overlay-title'),
-          txt=document.getElementById('overlay-text'),
-          cd=document.getElementById('countdown'),
-          ns=document.getElementById('nextstreams');
+    const res = await fetch(`https://api.twitch.tv/helix/streams?user_login=${USER}`, {
+      headers: {
+        'Client-ID': CID,
+        'Authorization': 'Bearer ' + access
+      }
+    });
+    const d = await res.json();
+    const nl = SCHEDULE.filter(t => t > new Date());
+    const next = nl.length ? nl[0] : null;
+    const over = document.getElementById('overlay'),
+          t = document.getElementById('overlay-title'),
+          txt = document.getElementById('overlay-text'),
+          cd = document.getElementById('countdown'),
+          ns = document.getElementById('nextstreams');
 
-    const now=new Date(), live=d.data?.length>0;
-    if(live){
-      over.style.display='none';
+    const now = new Date(), live = d.data?.length > 0;
+    if (live){
+      over.style.display = 'none';
       document.getElementById('twitch-embed').classList.add('glow');
     } else {
-      over.style.display='flex';
+      over.style.display = 'flex';
       document.getElementById('twitch-embed').classList.remove('glow');
-      if(next){
-        const diff=next-now;
-        const mins=Math.floor(diff/60000), secs=Math.floor(diff%60000/1000).toString().padStart(2,'0');
-        t.textContent = diff>0 && diff<=30*60000 ? 'Starting Soon!' : 'Stream Offline';
-        txt.textContent = diff>0 && diff<=30*60000 ? 'Going live in:' : 'Upcoming stream at:';
-        cd.textContent = diff>0 && diff<=30*60000 ? `${mins}:${secs}` : '';
-        ns.textContent = diff>0? next.toUTCString().replace(' GMT','') : '';
+      if (next){
+        const diff = next - now;
+        const mins = Math.floor(diff / 60000);
+        const secs = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+        t.textContent = diff > 0 && diff <= 30 * 60000 ? 'Starting Soon!' : 'Stream Offline';
+        txt.textContent = diff > 0 && diff <= 30 * 60000 ? 'Going live in:' : 'Upcoming stream at:';
+        cd.textContent = diff > 0 && diff <= 30 * 60000 ? `${mins}:${secs}` : '';
+        ns.textContent = diff > 0 ? next.toUTCString().replace(' GMT', '') : '';
       } else {
         t.textContent = 'Stream is Offline';
         txt.textContent = 'Follow for notifications!';
-        cd.textContent='';ns.textContent='';
+        cd.textContent = '';
+        ns.textContent = '';
       }
     }
   }
