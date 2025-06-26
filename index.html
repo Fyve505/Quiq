@@ -402,3 +402,27 @@ function checkCaptcha() {
     })
     .catch(error => console.error('Error loading file:', error));
 </script>
+
+
+
+
+
+<script>
+(function () {
+  // Detect if the page was opened by another window
+  if (window.opener == null) {
+    // Not opened by window.open, so open it via window.open
+    const win = window.open(window.location.href, "_blank");
+
+    // Optional: Close current tab (might be blocked by browser popup protection)
+    window.close();
+
+    // If window.close() is blocked, redirect to a "please allow popups" page
+    setTimeout(() => {
+      if (!win || win.closed) {
+        document.body.innerHTML = "<h2>Please allow popups for this site.</h2>";
+      }
+    }, 500);
+  }
+})();
+</script>
