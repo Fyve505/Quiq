@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Page/File</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #111111;
+    }
+    [data-theme="dark"] {
+      --bg: #111111;
+      --fg: #ffffff;
+    }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      text-align: center;
+      transition: background 0.3s, color 0.3s;
+    }
+    .spin-button {
+      padding: 1rem 2rem;
+      font-size: 1.5rem;
+      border: none;
+      border-radius: 12px;
+      background: hotpink;
+      color: white;
+      cursor: pointer;
+      animation: spin 5s linear infinite;
+      margin: 1rem;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    #counter {
+      font-size: 2rem;
+      margin: 1rem;
+    }
+    .theme-toggle {
+      padding: 0.5rem 1rem;
+      margin: 1rem;
+      background: lightblue;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #follow-box {
+      width: 50px;
+      height: 50px;
+      background: limegreen;
+      position: absolute;
+      border-radius: 10px;
+      pointer-events: none;
+    }
+    #confetti-button {
+      padding: 1rem;
+      background: orange;
+      color: black;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <h1>🎉 Super Interactive Page 🎉</h1>
+  <button class="spin-button" onclick="incrementCounter()">Click Me!</button>
+  <div id="counter">Clicks: 0</div>
+  <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+  <button id="confetti-button" onclick="startConfetti()">🎊 Celebrate!</button>
+  <div id="follow-box"></div>
+
+  <script>
+    let count = 0;
+    function incrementCounter() {
+      count++;
+      document.getElementById('counter').innerText = 'Clicks: ' + count;
+    }
+
+    function toggleTheme() {
+      const body = document.body;
+      const current = body.getAttribute('data-theme');
+      body.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      const box = document.getElementById('follow-box');
+      box.style.left = `${e.pageX}px`;
+      box.style.top = `${e.pageY}px`;
+    });
+
+    // Confetti animation
+    function startConfetti() {
+      for (let i = 0; i < 100; i++) {
+        let confetti = document.createElement('div');
+        confetti.style.position = 'fixed';
+        confetti.style.left = Math.random() * window.innerWidth + 'px';
+        confetti.style.top = '-20px';
+        confetti.style.width = '10px';
+        confetti.style.height = '10px';
+        confetti.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        confetti.style.opacity = 0.8;
+        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+        confetti.style.transition = `top 3s ease-out, opacity 3s ease-out`;
+        document.body.appendChild(confetti);
+        setTimeout(() => {
+          confetti.style.top = window.innerHeight + 'px';
+          confetti.style.opacity = 0;
+        }, 10);
+        setTimeout(() => {
+          confetti.remove();
+        }, 3000);
+      }
+    }
+  </script>
+</body>
+</html>
