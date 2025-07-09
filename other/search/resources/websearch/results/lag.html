@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lag-Maker - Quiq</title>
+  <style>
+    body {
+      background: #000;
+      color: #0f0;
+      font-family: monospace;
+      padding: 2rem;
+      text-align: center;
+      overflow-x: hidden;
+      transition: transform 0.1s ease;
+    }
+
+    button, select {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      margin: 0.5rem;
+      cursor: pointer;
+    }
+
+    .box {
+      width: 8px;
+      height: 8px;
+      background: red;
+      position: absolute;
+    }
+
+    #dashboard {
+      border: 1px solid #0f0;
+      padding: 1rem;
+      margin-top: 2rem;
+      background: #111;
+    }
+
+    canvas {
+      background: #222;
+      display: block;
+      margin: 1rem auto;
+    }
+
+    .options {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .fake-bsod {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #0000aa;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+    }
+
+    .cursor-lag-box {
+      pointer-events: none;
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      background: #0f0;
+      border-radius: 50%;
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<body>
+  <h1>💥 Quiq: Lag Maker 💥</h1>
+
+  <select id="preset">
+    <option value="custom">-- Select Preset --</option>
+    <option value="mild">Mild</option>
+    <option value="extreme">Extreme</option>
+    <option value="doom">Doom Mode ☢️</option>
+  </select>
+
+  <div class="options">
+    <label><input type="checkbox" id="cpuBurn"> CPU Burn</label>
+    <label><input type="checkbox" id="domSpam"> DOM Spam</label>
+    <label><input type="checkbox" id="animateLag"> Animation Overload</label>
+    <label><input type="checkbox" id="storageSpam"> Storage Spam</label>
+    <label><input type="checkbox" id="audioDistort"> Audio Distortion</label>
+    <label><input type="checkbox" id="alerts"> Random Alerts</label>
+    <label><input type="checkbox" id="vibrate"> Vibrate Device</label>
+    <label><input type="checkbox" id="shake"> Screen Shake</label>
+    <label><input type="checkbox" id="cursorLag"> Cursor Lag</label>
+    <label><input type="checkbox" id="bsod"> Fake BSOD</label>
+  </div>
+
+  <button onclick="startLag()">Start Lag</button>
+  <button onclick="stopLag()">Stop Lag</button>
+
+  <canvas id="fpsGraph" width="400" height="100"></canvas>
+
+  <div id="dashboard">
+    <h3>📊 Live Stats</h3>
+    <p>FPS: <span id="fps">0</span></p>
+    <p>DOM Nodes: <span id="domCount">0</span></p>
+    <p>Memory Usage (approx): <span id="memUsage">0</span> KB</p>
+  </div>
+
+  <div class="fake-bsod" id="bsodScreen">
+    <p>💥 A problem has been detected and Windows has been shut down to prevent damage 💥</p>
+    <p>Press any key to continue...</p>
+  </div>
+
+  <div id="cursorTrail" class="cursor-lag-box"></div>
+
+  <script>
+    let cpuInterval, domInterval, animInterval, storageInterval;
+    let alertInterval, audioInterval, vibrateInterval;
+    let shakeInterval, bsodTimeout, cursorLagInterval;
+    let boxCount = 0, cursorX = 0, cursorY = 0;
+    const cursorBox = document.getElementById("cursorTrail");
+
+    const fpsData = Array(100).fill(0);
+    const ctx = document.getElementById("fpsGraph").getContext("2d");
+    let lastLoop = performance.now();
+
+    function updateFPS() {
+      const now = performance.now();
+      const fps = Math.round(1000 / (now - lastLoop));
+      lastLoop = now;
+      document.getElementById("fps").textContent = fps;
+      fpsData.push(fps);
+      if (fpsData.length > 100) fpsData.shift();
+      drawFPSGraph();
+      requestAnimationFrame(updateFPS);
+    }
+
+    function drawFPSGraph() {
+      ctx.clearRect(0, 0, 400, 100);
+      ctx.strokeStyle = "#0f0";
+      ctx.beginPath();
+      fpsData.forEach((f, i) => ctx.lineTo(i * 4, 100 - Math.min(f, 60) * 1.5));
+      ctx.stroke();
+    }
+
+    updateFPS();
+
+    function applyPreset(preset) {
+      const settings = {
+        mild: ['cpuBurn'],
+        extreme: ['cpuBurn', 'domSpam', 'animateLag', 'shake'],
+        doom: ['cpuBurn', 'domSpam', 'animateLag', 'storageSpam', 'audioDistort', 'alerts', 'vibrate', 'shake', 'cursorLag', 'bsod']
+      };
+
+      document.querySelectorAll('input[type=checkbox]').forEach(input => {
+        input.checked = settings[preset]?.includes(input.id) || false;
+      });
+    }
+
+    document.getElementById("preset").addEventListener("change", (e) => {
+      if (e.target.value !== "custom") applyPreset(e.target.value);
+    });
+
+    function startLag() {
+      const is = id => document.getElementById(id).checked;
+
+      if (is('cpuBurn')) {
+        cpuInterval = setInterval(() => {
+          let t = performance.now() + 500;
+          while (performance.now() < t) Math.sqrt(Math.random() * 1000000);
+        }, 100);
+      }
+
+      if (is('domSpam')) {
+        domInterval = setInterval(() => {
+          for (let i = 0; i < 200; i++) {
+            const box = document.createElement('div');
+            box.className = 'box';
+            box.style.left = `${Math.random() * window.innerWidth}px`;
+            box.style.top = `${Math.random() * window.innerHeight}px`;
+            document.body.appendChild(box);
+            boxCount++;
+          }
+          document.getElementById('domCount').textContent = boxCount;
+        }, 300);
+      }
+
+      if (is('animateLag')) {
+        animInterval = setInterval(() => {
+          for (let i = 0; i < 300; i++) {
+            const d = document.createElement('div');
+            d.style.position = 'absolute';
+            d.style.left = `${Math.random() * 100}%`;
+            d.style.top = `${Math.random() * 100}%`;
+            d.style.width = '5px';
+            d.style.height = '5px';
+            d.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            d.style.transition = 'all 0.1s ease';
+            document.body.appendChild(d);
+            setTimeout(() => d.remove(), 1000);
+          }
+        }, 200);
+      }
+
+      if (is('storageSpam')) {
+        storageInterval = setInterval(() => {
+          for (let i = 0; i < 100; i++) {
+            localStorage.setItem('spam_' + Math.random(), 'x'.repeat(100));
+          }
+        }, 200);
+      }
+
+      if (is('alerts')) {
+        alertInterval = setInterval(() => {
+          if (Math.random() < 0.3) alert("⚠️ SYSTEM LAG DETECTED");
+        }, 2000);
+      }
+
+      if (is('audioDistort')) {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        audioInterval = setInterval(() => {
+          const buffer = audioCtx.createBuffer(1, 44100, 44100);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+          const src = audioCtx.createBufferSource();
+          src.buffer = buffer;
+          src.connect(audioCtx.destination);
+          src.start();
+        }, 1500);
+      }
+
+      if (is('vibrate') && navigator.vibrate) {
+        vibrateInterval = setInterval(() => navigator.vibrate([100, 100, 100]), 2000);
+      }
+
+      if (is('shake')) {
+        shakeInterval = setInterval(() => {
+          document.body.style.transform = `translate(${Math.random()*10-5}px, ${Math.random()*10-5}px)`;
+        }, 50);
+      }
+
+      if (is('bsod')) {
+        bsodTimeout = setTimeout(() => {
+          document.getElementById('bsodScreen').style.display = 'flex';
+        }, 8000);
+        document.addEventListener("keydown", () => {
+          document.getElementById('bsodScreen').style.display = 'none';
+        }, { once: true });
+      }
+
+      if (is('cursorLag')) {
+        document.addEventListener("mousemove", e => {
+          cursorX = e.clientX;
+          cursorY = e.clientY;
+        });
+
+        cursorLagInterval = setInterval(() => {
+          cursorBox.style.left = cursorX + 10 + "px";
+          cursorBox.style.top = cursorY + 10 + "px";
+        }, 100);
+      }
+    }
+
+    function stopLag() {
+      clearInterval(cpuInterval);
+      clearInterval(domInterval);
+      clearInterval(animInterval);
+      clearInterval(storageInterval);
+      clearInterval(alertInterval);
+      clearInterval(audioInterval);
+      clearInterval(vibrateInterval);
+      clearInterval(shakeInterval);
+      clearInterval(bsodTimeout);
+      clearInterval(cursorLagInterval);
+
+      document.body.style.transform = "none";
+      document.getElementById("bsodScreen").style.display = "none";
+
+      document.querySelectorAll('.box').forEach(e => e.remove());
+      boxCount = 0;
+      document.getElementById('domCount').textContent = 0;
+
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith('spam_')) localStorage.removeItem(k);
+      });
+    }
+
+    setInterval(() => {
+      const used = Math.round(Object.keys(localStorage).length * 0.1);
+      document.getElementById('memUsage').textContent = used;
+    }, 1000);
+  </script>
+</body>
+</html>
