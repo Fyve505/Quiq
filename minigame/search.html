@@ -7,8 +7,12 @@
   <style>
     :root {
       --primary-color: #4f46e5;
-      --bg-color: #f9fafb;
-      --text-color: #111827;
+      --bg-color: #1e1e2f;
+      --text-color: #f3f4f6;
+      --input-bg: #2c2c3e;
+      --input-border: #3b3b4f;
+      --search-box-bg: #2b2b3c;
+      --error-color: #f87171;
       --border-radius: 12px;
     }
 
@@ -39,36 +43,24 @@
       display: flex;
       align-items: center;
       gap: 1rem;
-      background: white;
+      background: var(--search-box-bg);
       padding: 1rem;
       border-radius: var(--border-radius);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
-    input[type="text"] {
-      padding: 0.75rem 1rem;
-      font-size: 1rem;
-      border: 2px solid #e5e7eb;
-      border-radius: var(--border-radius);
-      width: 300px;
-      transition: border-color 0.3s;
-    }
-
-    input[type="text"]:focus {
-      border-color: var(--primary-color);
-      outline: none;
-    }
-
+    input[type="text"],
     select {
       padding: 0.75rem 1rem;
       font-size: 1rem;
-      border: 2px solid #e5e7eb;
+      border: 2px solid var(--input-border);
       border-radius: var(--border-radius);
-      background-color: white;
-      cursor: pointer;
+      background-color: var(--input-bg);
+      color: var(--text-color);
       transition: border-color 0.3s;
     }
 
+    input[type="text"]:focus,
     select:focus {
       border-color: var(--primary-color);
       outline: none;
@@ -90,7 +82,7 @@
     }
 
     #error {
-      color: #ef4444;
+      color: var(--error-color);
       font-size: 1.5rem;
       margin-top: 2rem;
       display: none;
@@ -102,8 +94,9 @@
       margin-top: 2rem;
       border: none;
       border-radius: var(--border-radius);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
       display: none;
+      background-color: var(--input-bg);
     }
   </style>
 </head>
@@ -116,7 +109,6 @@
       <option value="google">Google</option>
       <option value="q">Q</option>
     </select>
-
     <button onclick="performSearch()">Search</button>
   </div>
   <div id="error">❌ Error 404: Not Found</div>
@@ -167,7 +159,6 @@
     }
   }
 
-  // 🔑 ENTER key support
   document.getElementById("searchInput").addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
       performSearch();
