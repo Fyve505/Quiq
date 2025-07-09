@@ -121,50 +121,58 @@
   <div id="error">❌ Error 404: Not Found</div>
   <iframe id="resultFrame"></iframe>
 
-  <script>
-    function detectMode() {
-      const input = document.getElementById("searchInput");
-      const mode = document.getElementById("modeSelector");
-      const text = input.value.trim();
+<script>
+  function detectMode() {
+    const input = document.getElementById("searchInput");
+    const mode = document.getElementById("modeSelector");
+    const text = input.value.trim();
 
-      if (text.startsWith(":G:")) {
-        mode.value = "google";
-        input.value = text.slice(3).trim();
-      } else if (text.startsWith(":Q:")) {
-        mode.value = "q";
-        input.value = text.slice(3).trim();
-      }
+    if (text.startsWith(":G:")) {
+      mode.value = "google";
+      input.value = text.slice(3).trim();
+    } else if (text.startsWith(":Q:")) {
+      mode.value = "q";
+      input.value = text.slice(3).trim();
+    }
+  }
+
+  function performSearch() {
+    const input = document.getElementById("searchInput").value.trim();
+    const mode = document.getElementById("modeSelector").value;
+    const error = document.getElementById("error");
+    const iframe = document.getElementById("resultFrame");
+
+    error.style.display = "none";
+    iframe.style.display = "none";
+
+    if (input === "") {
+      error.style.display = "block";
+      return;
     }
 
-    function performSearch() {
-      const input = document.getElementById("searchInput").value.trim();
-      const mode = document.getElementById("modeSelector").value;
-      const error = document.getElementById("error");
-      const iframe = document.getElementById("resultFrame");
-
-      error.style.display = "none";
-      iframe.style.display = "none";
-
-      if (input === "") {
-        error.style.display = "block";
-        return;
-      }
-
-      if (mode === "google") {
-        const query = encodeURIComponent(input);
-        window.open(`https://www.google.com/search?q=${query}`, '_blank');
-      } else if (mode === "q") {
-        const page = input.replace(/[^a-zA-Z0-9-_]/g, "");
-        iframe.src = `resources/websearch/Q/${page}.html`;
-        iframe.onload = () => iframe.style.display = "block";
-        iframe.onerror = () => error.style.display = "block";
-      } else {
-        const filename = input.replace(/[^a-zA-Z0-9-_]/g, "");
-        iframe.src = `resources/websearch/results/${filename}.html`;
-        iframe.onload = () => iframe.style.display = "block";
-        iframe.onerror = () => error.style.display = "block";
-      }
+    if (mode === "google") {
+      const query = encodeURIComponent(input);
+      window.open(`https://www.google.com/search?q=${query}`, '_blank');
+    } else if (mode === "q") {
+      const page = input.replace(/[^a-zA-Z0-9-_]/g, "");
+      iframe.src = `resources/websearch/Q/${page}.html`;
+      iframe.onload = () => iframe.style.display = "block";
+      iframe.onerror = () => error.style.display = "block";
+    } else {
+      const filename = input.replace(/[^a-zA-Z0-9-_]/g, "");
+      iframe.src = `resources/websearch/results/${filename}.html`;
+      iframe.onload = () => iframe.style.display = "block";
+      iframe.onerror = () => error.style.display = "block";
     }
-  </script>
+  }
+
+  // 🔑 ENTER key support
+  document.getElementById("searchInput").addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+      performSearch();
+    }
+  });
+</script>
+
 </body>
 </html>
