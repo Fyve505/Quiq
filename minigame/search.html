@@ -114,7 +114,7 @@
         window.open(`https://www.google.com/search?q=${query}`, '_blank');
       } else if (input !== "") {
         const filename = input.replace(/[^a-zA-Z0-9-_]/g, ""); // basic sanitize
-        iframe.src = `resources/websearch/${filename}.html`;
+        iframe.src = `resources/websearch/results/${filename}.html`;
         iframe.onload = () => iframe.style.display = "block";
         iframe.onerror = () => error.style.display = "block";
       } else {
