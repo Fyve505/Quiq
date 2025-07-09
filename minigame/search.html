@@ -37,6 +37,7 @@
 
     .search-box {
       display: flex;
+      align-items: center;
       gap: 1rem;
       background: white;
       padding: 1rem;
@@ -54,6 +55,21 @@
     }
 
     input[type="text"]:focus {
+      border-color: var(--primary-color);
+      outline: none;
+    }
+
+    select {
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: var(--border-radius);
+      background-color: white;
+      cursor: pointer;
+      transition: border-color 0.3s;
+    }
+
+    select:focus {
       border-color: var(--primary-color);
       outline: none;
     }
@@ -94,31 +110,59 @@
 <body>
   <h1>🔍 Quiq Search Engine</h1>
   <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Type something like :G: Hello or filename" />
+    <input type="text" id="searchInput" placeholder="Search or type :G: Hello, :Q: File, etc." oninput="detectMode()" />
+    <select id="modeSelector">
+      <option value="results">Results</option>
+      <option value="google">Google</option>
+      <option value="q">Q</option>
+    </select>
     <button onclick="performSearch()">Search</button>
   </div>
   <div id="error">❌ Error 404: Not Found</div>
   <iframe id="resultFrame"></iframe>
 
   <script>
+    function detectMode() {
+      const input = document.getElementById("searchInput");
+      const mode = document.getElementById("modeSelector");
+      const text = input.value.trim();
+
+      if (text.startsWith(":G:")) {
+        mode.value = "google";
+        input.value = text.slice(3).trim();
+      } else if (text.startsWith(":Q:")) {
+        mode.value = "q";
+        input.value = text.slice(3).trim();
+      }
+    }
+
     function performSearch() {
       const input = document.getElementById("searchInput").value.trim();
+      const mode = document.getElementById("modeSelector").value;
       const error = document.getElementById("error");
       const iframe = document.getElementById("resultFrame");
 
       error.style.display = "none";
       iframe.style.display = "none";
 
-      if (input.startsWith(":G:")) {
-        const query = encodeURIComponent(input.slice(3).trim());
+      if (input === "") {
+        error.style.display = "block";
+        return;
+      }
+
+      if (mode === "google") {
+        const query = encodeURIComponent(input);
         window.open(`https://www.google.com/search?q=${query}`, '_blank');
-      } else if (input !== "") {
-        const filename = input.replace(/[^a-zA-Z0-9-_]/g, ""); // basic sanitize
-        iframe.src = `resources/websearch/results/${filename}.html`;
+      } else if (mode === "q") {
+        const page = input.replace(/[^a-zA-Z0-9-_]/g, "");
+        iframe.src = `resources/websearch/Q/${page}.html`;
         iframe.onload = () => iframe.style.display = "block";
         iframe.onerror = () => error.style.display = "block";
       } else {
-        error.style.display = "block";
+        const filename = input.replace(/[^a-zA-Z0-9-_]/g, "");
+        iframe.src = `resources/websearch/results/${filename}.html`;
+        iframe.onload = () => iframe.style.display = "block";
+        iframe.onerror = () => error.style.display = "block";
       }
     }
   </script>
