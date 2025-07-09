@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search - Quiq</title>
+  <style>
+    :root {
+      --primary-color: #4f46e5;
+      --bg-color: #1e1e2f;
+      --text-color: #f3f4f6;
+      --input-bg: #2c2c3e;
+      --input-border: #3b3b4f;
+      --search-box-bg: #2b2b3c;
+      --error-color: #f87171;
+      --border-radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: var(--search-box-bg);
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    input[type="text"],
+    select {
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border: 2px solid var(--input-border);
+      border-radius: var(--border-radius);
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus,
+    select:focus {
+      border-color: var(--primary-color);
+      outline: none;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #3730a3;
+    }
+
+    #error {
+      color: var(--error-color);
+      font-size: 1.5rem;
+      margin-top: 2rem;
+      display: none;
+    }
+
+    iframe {
+      width: 90%;
+      height: 500px;
+      margin-top: 2rem;
+      border: none;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      display: none;
+      background-color: var(--input-bg);
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 Quiq Search Engine</h1>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search or type :G: Hello, :Q: File, etc." oninput="detectMode()" />
+    <select id="modeSelector">
+      <option value="results">Results</option>
+      <option value="google">Google</option>
+      <option value="q">Q</option>
+    </select>
+    <button onclick="performSearch()">Search</button>
+  </div>
+  <div id="error">❌ Error 404: Not Found</div>
+  <iframe id="resultFrame"></iframe>
+
+<script>
+  function detectMode() {
+    const input = document.getElementById("searchInput");
+    const mode = document.getElementById("modeSelector");
+    const text = input.value.trim();
+
+    if (text.startsWith(":G:")) {
+      mode.value = "google";
+      input.value = text.slice(3).trim();
+    } else if (text.startsWith(":Q:")) {
+      mode.value = "q";
+      input.value = text.slice(3).trim();
+    }
+  }
+
+  function performSearch() {
+    const input = document.getElementById("searchInput").value.trim();
+    const mode = document.getElementById("modeSelector").value;
+    const error = document.getElementById("error");
+    const iframe = document.getElementById("resultFrame");
+
+    error.style.display = "none";
+    iframe.style.display = "none";
+
+    if (input === "") {
+      error.style.display = "block";
+      return;
+    }
+
+    if (mode === "google") {
+      const query = encodeURIComponent(input);
+      window.open(`https://www.google.com/search?q=${query}`, '_blank');
+    } else if (mode === "q") {
+      const page = input.replace(/[^a-zA-Z0-9-_]/g, "");
+      iframe.src = `resources/websearch/Q/${page}.html`;
+      iframe.onload = () => iframe.style.display = "block";
+      iframe.onerror = () => error.style.display = "block";
+    } else {
+      const filename = input.replace(/[^a-zA-Z0-9-_]/g, "");
+      iframe.src = `resources/websearch/results/${filename}.html`;
+      iframe.onload = () => iframe.style.display = "block";
+      iframe.onerror = () => error.style.display = "block";
+    }
+  }
+
+  document.getElementById("searchInput").addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+      performSearch();
+    }
+  });
+</script>
+
+</body>
+</html>
