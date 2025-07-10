@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Search - Quiq</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quiq Search Debug</title>
   <style>
     :root {
       --primary-color: #4f46e5;
@@ -15,7 +15,6 @@
       --error-color: #f87171;
       --border-radius: 12px;
     }
-
     body {
       background-color: var(--bg-color);
       color: var(--text-color);
@@ -27,12 +26,7 @@
       min-height: 100vh;
       padding: 2rem;
     }
-
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 2rem;
-    }
-
+    h1 { font-size: 2.5rem; margin-bottom: 2rem; }
     .search-box {
       display: flex;
       align-items: center;
@@ -42,7 +36,6 @@
       border-radius: var(--border-radius);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
-
     input[type="text"],
     select {
       padding: 0.75rem 1rem;
@@ -52,7 +45,6 @@
       background-color: var(--input-bg);
       color: var(--text-color);
     }
-
     button {
       padding: 0.75rem 1.5rem;
       font-size: 1rem;
@@ -62,29 +54,12 @@
       border-radius: var(--border-radius);
       cursor: pointer;
     }
-
-    button:hover {
-      background-color: #3730a3;
-    }
-
     #error {
       color: var(--error-color);
       font-size: 1.5rem;
       margin-top: 2rem;
       display: none;
     }
-
-    iframe {
-      width: 90%;
-      height: 500px;
-      margin-top: 2rem;
-      border: none;
-      border-radius: var(--border-radius);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-      display: none;
-      background-color: var(--input-bg);
-    }
-
     #loader {
       border: 6px solid #f3f3f3;
       border-top: 6px solid var(--primary-color);
@@ -95,7 +70,15 @@
       margin-top: 2rem;
       display: none;
     }
-
+    iframe {
+      width: 90%;
+      height: 500px;
+      margin-top: 2rem;
+      border: none;
+      border-radius: var(--border-radius);
+      background-color: var(--input-bg);
+      display: none;
+    }
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
@@ -103,9 +86,9 @@
   </style>
 </head>
 <body>
-  <h1>🔍 Quiq Search Engine</h1>
+  <h1>🔍 Quiq Search Engine (Debug)</h1>
   <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Type :G: Google, :Q: Q, :R: Result, :B: Bing, :S: CSV" oninput="detectMode()" />
+    <input type="text" id="searchInput" placeholder="Try :S:test or :G:Hello..." oninput="detectMode()" />
     <select id="modeSelector">
       <option value="results">Results</option>
       <option value="google">Google</option>
@@ -119,114 +102,136 @@
   <div id="loader"></div>
   <iframe id="resultFrame"></iframe>
 
-  <script>
-    function detectMode() {
-      const input = document.getElementById("searchInput");
-      const mode = document.getElementById("modeSelector");
-      const text = input.value.trim();
-      const upperText = text.toUpperCase();
+<script>
+function detectMode() {
+  const input = document.getElementById("searchInput");
+  const mode = document.getElementById("modeSelector");
+  const text = input.value.trim();
+  const upperText = text.toUpperCase();
 
-      if (upperText.startsWith(":G:")) {
-        mode.value = "google";
-        input.value = text.slice(3).trim();
-      } else if (upperText.startsWith(":Q:")) {
-        mode.value = "q";
-        input.value = text.slice(3).trim();
-      } else if (upperText.startsWith(":R:")) {
-        mode.value = "results";
-        input.value = text.slice(3).trim();
-      } else if (upperText.startsWith(":B:")) {
-        mode.value = "bing";
-        input.value = text.slice(3).trim();
-      } else if (upperText.startsWith(":S:")) {
-        mode.value = "s";
-        input.value = text.slice(3).trim();
-      }
-    }
+  if (upperText.startsWith(":G:")) {
+    mode.value = "google";
+    input.value = text.slice(3).trim();
+  } else if (upperText.startsWith(":Q:")) {
+    mode.value = "q";
+    input.value = text.slice(3).trim();
+  } else if (upperText.startsWith(":R:")) {
+    mode.value = "results";
+    input.value = text.slice(3).trim();
+  } else if (upperText.startsWith(":B:")) {
+    mode.value = "bing";
+    input.value = text.slice(3).trim();
+  } else if (upperText.startsWith(":S:")) {
+    mode.value = "s";
+    input.value = text.slice(3).trim();
+  }
+}
 
-    async function performSearch() {
-      const inputText = document.getElementById("searchInput").value.trim();
-      const mode = document.getElementById("modeSelector").value;
-      const error = document.getElementById("error");
-      const iframe = document.getElementById("resultFrame");
-      const loader = document.getElementById("loader");
+async function performSearch() {
+  const inputText = document.getElementById("searchInput").value.trim();
+  const mode = document.getElementById("modeSelector").value;
+  const error = document.getElementById("error");
+  const iframe = document.getElementById("resultFrame");
+  const loader = document.getElementById("loader");
 
-      error.style.display = "none";
-      iframe.style.display = "none";
-      loader.style.display = "block";
+  error.style.display = "none";
+  iframe.style.display = "none";
+  loader.style.display = "block";
 
-      if (!inputText) {
-        error.style.display = "block";
-        loader.style.display = "none";
-        return;
-      }
+  if (!inputText) {
+    error.style.display = "block";
+    loader.style.display = "none";
+    return;
+  }
 
-      const query = encodeURIComponent(inputText);
+  const query = encodeURIComponent(inputText);
 
-      if (mode === "google") {
-        loader.style.display = "none";
-        window.open(`https://www.google.com/search?q=${query}`, '_blank');
-      } else if (mode === "bing") {
-        loader.style.display = "none";
-        window.open(`https://www.bing.com/search?q=${query}`, '_blank');
-      } else if (mode === "q") {
-        const safeName = inputText.replace(/[^a-zA-Z0-9-_]/g, "");
-        iframe.src = `resources/websearch/Q/${safeName}.html`;
-        iframe.onload = () => { iframe.style.display = "block"; loader.style.display = "none"; };
-        iframe.onerror = () => { error.style.display = "block"; loader.style.display = "none"; };
-      } else if (mode === "results") {
-        const safeName = inputText.replace(/[^a-zA-Z0-9-_]/g, "");
-        iframe.src = `resources/websearch/results/${safeName}.html`;
-        iframe.onload = () => { iframe.style.display = "block"; loader.style.display = "none"; };
-        iframe.onerror = () => { error.style.display = "block"; loader.style.display = "none"; };
-      } else if (mode === "s") {
-        try {
-          const response = await fetch("resources/websearch/S.csv");
-          const csvText = await response.text();
-          const lines = csvText.trim().split(/\r?\n/).slice(1); // skip header
-          let found = false;
+  if (mode === "google") {
+    loader.style.display = "none";
+    window.open(`https://www.google.com/search?q=${query}`, '_blank');
+    return;
+  }
 
-          for (const line of lines) {
-            const parts = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-            if (!parts || parts.length < 2) continue;
+  if (mode === "bing") {
+    loader.style.display = "none";
+    window.open(`https://www.bing.com/search?q=${query}`, '_blank');
+    return;
+  }
 
-            const search = parts[0].replace(/^"|"$/g, "").trim();
-            const result = parts[1].replace(/^"|"$/g, "").trim();
-            const code = parts[2] ? parts[2].replace(/^"|"$/g, "").trim() : "";
+  if (mode === "q") {
+    const safe = inputText.replace(/[^a-zA-Z0-9-_]/g, "");
+    iframe.src = `resources/websearch/Q/${safe}.html`;
+    iframe.onload = () => { iframe.style.display = "block"; loader.style.display = "none"; };
+    iframe.onerror = () => { error.style.display = "block"; loader.style.display = "none"; };
+    return;
+  }
 
-            if (search.toLowerCase() === inputText.toLowerCase()) {
-              const html = `
-                <html>
-                <body style="background:#2c2c3e; color:#f3f4f6; font-family:sans-serif; padding:1rem;">
-                  <h2>🔎 Result for "${search}"</h2>
-                  <p>${result}</p>
-                  <small>Code: ${code}</small>
-                </body>
-                </html>`;
-              const blob = new Blob([html], { type: 'text/html' });
-              iframe.src = URL.createObjectURL(blob);
-              iframe.onload = () => { iframe.style.display = "block"; loader.style.display = "none"; };
-              found = true;
-              break;
-            }
-          }
+  if (mode === "results") {
+    const safe = inputText.replace(/[^a-zA-Z0-9-_]/g, "");
+    iframe.src = `resources/websearch/results/${safe}.html`;
+    iframe.onload = () => { iframe.style.display = "block"; loader.style.display = "none"; };
+    iframe.onerror = () => { error.style.display = "block"; loader.style.display = "none"; };
+    return;
+  }
 
-          if (!found) {
-            error.style.display = "block";
-            loader.style.display = "none";
-          }
+  // S Mode (CSV lookup)
+  if (mode === "s") {
+    console.log("▶ Entered S mode. Input:", inputText);
+    try {
+      const response = await fetch("resources/websearch/S.csv");
+      console.log("📁 Fetched S.csv - status:", response.status);
 
-        } catch (e) {
-          console.error(e);
-          error.style.display = "block";
-          loader.style.display = "none";
+      const text = await response.text();
+      console.log("📄 CSV Content:\n", text);
+
+      const lines = text.trim().split(/\r?\n/).slice(1);
+      console.log("📊 Parsed Lines:", lines);
+
+      let found = false;
+      for (let line of lines) {
+        console.log("🔍 Processing line:", line);
+        const parts = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+        console.log("🧩 Parts:", parts);
+
+        if (!parts || parts.length < 2) continue;
+
+        const search = parts[0].replace(/^"|"$/g, "").trim();
+        const result = parts[1].replace(/^"|"$/g, "").trim();
+        const code = parts[2] ? parts[2].replace(/^"|"$/g, "").trim() : "";
+
+        console.log(`🤖 Comparing "${search.toLowerCase()}" to "${inputText.toLowerCase()}"`);
+        if (search.toLowerCase() === inputText.toLowerCase()) {
+          console.log("✅ Match found:", search);
+          const html = `
+            <html><body style="background:#2c2c3e;color:#f3f4f6;font-family:sans-serif;padding:1rem">
+              <h2>Result for "${search}"</h2>
+              <p>${result}</p><small>Code: ${code}</small>
+            </body></html>`;
+          const blob = new Blob([html], { type: "text/html" });
+          iframe.src = URL.createObjectURL(blob);
+          iframe.onload = () => { iframe.style.display = "block"; loader.style.display = "none"; };
+          found = true;
+          break;
         }
       }
-    }
 
-    document.getElementById("searchInput").addEventListener("keydown", (event) => {
-      if (event.key === "Enter") performSearch();
-    });
-  </script>
+      if (!found) {
+        console.warn("⚠️ No match found in CSV.");
+        error.style.display = "block";
+        loader.style.display = "none";
+      }
+
+    } catch (err) {
+      console.error("❌ Error in S-mode:", err);
+      error.style.display = "block";
+      loader.style.display = "none";
+    }
+  }
+}
+
+document.getElementById("searchInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") performSearch();
+});
+</script>
 </body>
 </html>
