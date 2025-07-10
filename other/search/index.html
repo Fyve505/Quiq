@@ -88,13 +88,13 @@
 <body>
   <h1>🔍 Quiq Search Engine</h1>
   <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Try :S:test or :G:Hello..." oninput="detectMode()" />
-    <select id="modeSelector">
+    <input type="text" id="searchInput" placeholder="Try :S:term or CSV mapped phrase..." oninput="detectMode()" />
+    <select id="modeSelector" onchange="updatePlaceholder()">
       <option value="results">Results</option>
       <option value="google">Google</option>
       <option value="bing">Bing</option>
       <option value="q">Q</option>
-      <option value="s">S</option>
+      <option value="s" selected>S</option>
     </select>
     <button onclick="performSearch()">Search</button>
   </div>
@@ -124,6 +124,30 @@ function detectMode() {
   } else if (upperText.startsWith(":S:")) {
     mode.value = "s";
     input.value = text.slice(3).trim();
+  }
+  updatePlaceholder(); // Update placeholder after detecting mode
+}
+
+function updatePlaceholder() {
+  const mode = document.getElementById("modeSelector").value;
+  const input = document.getElementById("searchInput");
+  switch (mode) {
+    case "google":
+      input.placeholder = "Try :G:Hello or just search...";
+      break;
+    case "bing":
+      input.placeholder = "Try :B:weather in NY...";
+      break;
+    case "q":
+      input.placeholder = "Try :Q:term or custom Q files...";
+      break;
+    case "results":
+      input.placeholder = "Try :R:term (Results mode)...";
+      break;
+    case "s":
+    default:
+      input.placeholder = "Try :S:term or CSV mapped phrase...";
+      break;
   }
 }
 
@@ -219,6 +243,9 @@ async function performSearch() {
 document.getElementById("searchInput").addEventListener("keydown", (e) => {
   if (e.key === "Enter") performSearch();
 });
+
+// Set default placeholder on initial load
+updatePlaceholder();
 </script>
 </body>
 </html>
