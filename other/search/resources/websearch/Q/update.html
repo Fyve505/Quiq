@@ -6,7 +6,6 @@
 <title>Update Form - Dark Mode</title>
 <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
 <style>
-  /* Dark mode background and text */
   body {
     background-color: #121212;
     color: #e0e0e0;
@@ -87,11 +86,15 @@
     padding: 0.75rem 0;
     width: 100%;
     border-radius: 8px;
-    cursor: pointer;
+    cursor: not-allowed; /* disabled by default */
     transition: background-color 0.3s ease;
   }
 
-  button:hover {
+  button.enabled {
+    cursor: pointer;
+  }
+
+  button.enabled:hover {
     background-color: #7bc700;
   }
 
@@ -101,7 +104,6 @@
     justify-content: center;
   }
 
-  /* Responsive */
   @media (max-width: 440px) {
     form {
       width: 90%;
@@ -112,7 +114,7 @@
 </head>
 <body>
 
-<form action="#" method="POST" novalidate>
+<form id="updateForm" action="#" method="POST" novalidate>
   <h2>Update Form</h2>
 
   <label for="name">Name (required):</label>
@@ -129,10 +131,67 @@
     Must or not
   </label>
 
-  <div class="h-captcha" data-sitekey="your-hcaptcha-site-key"></div>
+  <div class="h-captcha" data-sitekey="your-hcaptcha-site-key" data-callback="onCaptchaSuccess" data-expired-callback="onCaptchaExpired"></div>
 
-  <button type="submit">Submit</button>
+  <button id="submitBtn" type="submit" disabled>Submit</button>
 </form>
+
+<script>
+  const form = document.getElementById('updateForm');
+  const submitBtn = document.getElementById('submitBtn');
+
+  // Track if captcha is solved
+  let captchaSolved = false;
+
+  // Called by hCaptcha when solved successfully
+  function onCaptchaSuccess(token) {
+    captchaSolved = true;
+    checkFormValidity();
+  }
+
+  // Called by hCaptcha when expired or reset
+  function onCaptchaExpired() {
+    captchaSolved = false;
+    checkFormValidity();
+  }
+
+  // Check if all required inputs are valid and captcha solved
+  function checkFormValidity() {
+    // Check form validity using browser's built-in checkValidity()
+    const formValid = form.checkValidity();
+
+    if (formValid && captchaSolved) {
+      submitBtn.disabled = false;
+      submitBtn.classList.add('enabled');
+    } else {
+      submitBtn.disabled = true;
+      submitBtn.classList.remove('enabled');
+    }
+  }
+
+  // Listen for input changes to update button state live
+  form.addEventListener('input', () => {
+    checkFormValidity();
+  });
+
+  // Also listen for checkbox changes (optional field, so no effect)
+  form.querySelector('#must').addEventListener('change', () => {
+    checkFormValidity();
+  });
+
+  // Prevent submission if invalid or captcha not solved
+  form.addEventListener('submit', (e) => {
+    if (!captchaSolved || !form.checkValidity()) {
+      e.preventDefault();
+      // Optionally focus on the first invalid input
+      form.reportValidity();
+    }
+  });
+
+  // Expose captcha callbacks globally
+  window.onCaptchaSuccess = onCaptchaSuccess;
+  window.onCaptchaExpired = onCaptchaExpired;
+</script>
 
 </body>
 </html>
