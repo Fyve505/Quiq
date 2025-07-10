@@ -194,7 +194,7 @@ async function performSearch() {
           const html = `
             <html><body style="background:#2c2c3e;color:#f3f4f6;font-family:sans-serif;padding:1rem">
               <h2>Result for "${search}"</h2>
-              <p>${result}</p><small>Code: ${code}</small>
+              <p>"${result}"</p><small>Code: ${code}</small>
             </body></html>`;
           const blob = new Blob([html], { type: "text/html" });
           iframe.src = URL.createObjectURL(blob);
