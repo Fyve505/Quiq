@@ -16,12 +16,6 @@
       --border-radius: 12px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
     body {
       background-color: var(--bg-color);
       color: var(--text-color);
@@ -57,13 +51,6 @@
       border-radius: var(--border-radius);
       background-color: var(--input-bg);
       color: var(--text-color);
-      transition: border-color 0.3s;
-    }
-
-    input[type="text"]:focus,
-    select:focus {
-      border-color: var(--primary-color);
-      outline: none;
     }
 
     button {
@@ -74,7 +61,6 @@
       border: none;
       border-radius: var(--border-radius);
       cursor: pointer;
-      transition: background-color 0.3s;
     }
 
     button:hover {
@@ -119,7 +105,7 @@
 <body>
   <h1>🔍 Quiq Search Engine</h1>
   <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Search or type :G:, :Q:, :R:, :B:, :S:..." oninput="detectMode()" />
+    <input type="text" id="searchInput" placeholder="Type :G: Google, :Q: Q, :R: Result, :B: Bing, :S: CSV" oninput="detectMode()" />
     <select id="modeSelector">
       <option value="results">Results</option>
       <option value="google">Google</option>
@@ -159,7 +145,7 @@
     }
 
     async function performSearch() {
-      const input = document.getElementById("searchInput").value.trim();
+      const inputText = document.getElementById("searchInput").value.trim();
       const mode = document.getElementById("modeSelector").value;
       const error = document.getElementById("error");
       const iframe = document.getElementById("resultFrame");
@@ -169,13 +155,13 @@
       iframe.style.display = "none";
       loader.style.display = "block";
 
-      if (input === "") {
+      if (!inputText) {
         error.style.display = "block";
         loader.style.display = "none";
         return;
       }
 
-      const query = encodeURIComponent(input);
+      const query = encodeURIComponent(inputText);
 
       if (mode === "google") {
         loader.style.display = "none";
@@ -184,28 +170,40 @@
         loader.style.display = "none";
         window.open(`https://www.bing.com/search?q=${query}`, '_blank');
       } else if (mode === "q") {
-        const page = input.replace(/[^a-zA-Z0-9-_]/g, "");
-        iframe.src = `resources/websearch/Q/${page}.html`;
+        const safeName = inputText.replace(/[^a-zA-Z0-9-_]/g, "");
+        iframe.src = `resources/websearch/Q/${safeName}.html`;
+        iframe.onload = () => { iframe.style.display = "block"; loader.style.display = "none"; };
+        iframe.onerror = () => { error.style.display = "block"; loader.style.display = "none"; };
+      } else if (mode === "results") {
+        const safeName = inputText.replace(/[^a-zA-Z0-9-_]/g, "");
+        iframe.src = `resources/websearch/results/${safeName}.html`;
         iframe.onload = () => { iframe.style.display = "block"; loader.style.display = "none"; };
         iframe.onerror = () => { error.style.display = "block"; loader.style.display = "none"; };
       } else if (mode === "s") {
         try {
-          const response = await fetch('resources/websearch/S.csv');
+          const response = await fetch("resources/websearch/S.csv");
           const csvText = await response.text();
-          const lines = csvText.split('\n').slice(1);
+          const lines = csvText.trim().split(/\r?\n/).slice(1); // skip header
           let found = false;
 
-          for (let line of lines) {
-            const [search, result] = line.split(',').map(s => s.trim());
-            if (search.toLowerCase() === input.toLowerCase()) {
-              const htmlContent = `
+          for (const line of lines) {
+            const parts = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+            if (!parts || parts.length < 2) continue;
+
+            const search = parts[0].replace(/^"|"$/g, "").trim();
+            const result = parts[1].replace(/^"|"$/g, "").trim();
+            const code = parts[2] ? parts[2].replace(/^"|"$/g, "").trim() : "";
+
+            if (search.toLowerCase() === inputText.toLowerCase()) {
+              const html = `
                 <html>
-                  <body style="background:#2c2c3e; color:#f3f4f6; font-family:sans-serif; padding:1rem;">
-                    <h2>🔎 Result for "${search}"</h2>
-                    <p>${result}</p>
-                  </body>
+                <body style="background:#2c2c3e; color:#f3f4f6; font-family:sans-serif; padding:1rem;">
+                  <h2>🔎 Result for "${search}"</h2>
+                  <p>${result}</p>
+                  <small>Code: ${code}</small>
+                </body>
                 </html>`;
-              const blob = new Blob([htmlContent], { type: 'text/html' });
+              const blob = new Blob([html], { type: 'text/html' });
               iframe.src = URL.createObjectURL(blob);
               iframe.onload = () => { iframe.style.display = "block"; loader.style.display = "none"; };
               found = true;
@@ -217,23 +215,17 @@
             error.style.display = "block";
             loader.style.display = "none";
           }
-        } catch (err) {
-          console.error(err);
+
+        } catch (e) {
+          console.error(e);
           error.style.display = "block";
           loader.style.display = "none";
         }
-      } else {
-        const filename = input.replace(/[^a-zA-Z0-9-_]/g, "");
-        iframe.src = `resources/websearch/results/${filename}.html`;
-        iframe.onload = () => { iframe.style.display = "block"; loader.style.display = "none"; };
-        iframe.onerror = () => { error.style.display = "block"; loader.style.display = "none"; };
       }
     }
 
-    document.getElementById("searchInput").addEventListener("keydown", function(event) {
-      if (event.key === "Enter") {
-        performSearch();
-      }
+    document.getElementById("searchInput").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") performSearch();
     });
   </script>
 </body>
