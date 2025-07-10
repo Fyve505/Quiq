@@ -177,7 +177,7 @@ async function performSearch() {
   // S Mode (CSV lookup)
   if (mode === "s") {
     try {
-      const response = await fetch("resources/websearch/S.csv");
+      const response = await fetch("search/resources/websearch/S.csv");
       const text = await response.text();
 
       const lines = text.trim().split(/\r?\n/).slice(1);
