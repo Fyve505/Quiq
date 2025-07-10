@@ -98,73 +98,143 @@
       display: none;
       background-color: var(--input-bg);
     }
+
+    #loader {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid var(--primary-color);
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin-top: 2rem;
+      display: none;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
   <h1>🔍 Quiq Search Engine</h1>
   <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Search or type :G: Hello, :Q: File, etc." oninput="detectMode()" />
+    <input type="text" id="searchInput" placeholder="Search or type :G:, :Q:, :R:, :B:, :S:..." oninput="detectMode()" />
     <select id="modeSelector">
       <option value="results">Results</option>
       <option value="google">Google</option>
+      <option value="bing">Bing</option>
       <option value="q">Q</option>
+      <option value="s">S</option>
     </select>
     <button onclick="performSearch()">Search</button>
   </div>
   <div id="error">❌ Error 404: Not Found</div>
+  <div id="loader"></div>
   <iframe id="resultFrame"></iframe>
 
-<script>
-  function detectMode() {
-    const input = document.getElementById("searchInput");
-    const mode = document.getElementById("modeSelector");
-    const text = input.value.trim();
+  <script>
+    function detectMode() {
+      const input = document.getElementById("searchInput");
+      const mode = document.getElementById("modeSelector");
+      const text = input.value.trim();
+      const upperText = text.toUpperCase();
 
-    if (text.startsWith(":G:")) {
-      mode.value = "google";
-      input.value = text.slice(3).trim();
-    } else if (text.startsWith(":Q:")) {
-      mode.value = "q";
-      input.value = text.slice(3).trim();
-    }
-  }
-
-  function performSearch() {
-    const input = document.getElementById("searchInput").value.trim();
-    const mode = document.getElementById("modeSelector").value;
-    const error = document.getElementById("error");
-    const iframe = document.getElementById("resultFrame");
-
-    error.style.display = "none";
-    iframe.style.display = "none";
-
-    if (input === "") {
-      error.style.display = "block";
-      return;
+      if (upperText.startsWith(":G:")) {
+        mode.value = "google";
+        input.value = text.slice(3).trim();
+      } else if (upperText.startsWith(":Q:")) {
+        mode.value = "q";
+        input.value = text.slice(3).trim();
+      } else if (upperText.startsWith(":R:")) {
+        mode.value = "results";
+        input.value = text.slice(3).trim();
+      } else if (upperText.startsWith(":B:")) {
+        mode.value = "bing";
+        input.value = text.slice(3).trim();
+      } else if (upperText.startsWith(":S:")) {
+        mode.value = "s";
+        input.value = text.slice(3).trim();
+      }
     }
 
-    if (mode === "google") {
+    async function performSearch() {
+      const input = document.getElementById("searchInput").value.trim();
+      const mode = document.getElementById("modeSelector").value;
+      const error = document.getElementById("error");
+      const iframe = document.getElementById("resultFrame");
+      const loader = document.getElementById("loader");
+
+      error.style.display = "none";
+      iframe.style.display = "none";
+      loader.style.display = "block";
+
+      if (input === "") {
+        error.style.display = "block";
+        loader.style.display = "none";
+        return;
+      }
+
       const query = encodeURIComponent(input);
-      window.open(`https://www.google.com/search?q=${query}`, '_blank');
-    } else if (mode === "q") {
-      const page = input.replace(/[^a-zA-Z0-9-_]/g, "");
-      iframe.src = `resources/websearch/Q/${page}.html`;
-      iframe.onload = () => iframe.style.display = "block";
-      iframe.onerror = () => error.style.display = "block";
-    } else {
-      const filename = input.replace(/[^a-zA-Z0-9-_]/g, "");
-      iframe.src = `resources/websearch/results/${filename}.html`;
-      iframe.onload = () => iframe.style.display = "block";
-      iframe.onerror = () => error.style.display = "block";
-    }
-  }
 
-  document.getElementById("searchInput").addEventListener("keydown", function(event) {
-    if (event.key === "Enter") {
-      performSearch();
-    }
-  });
-</script>
+      if (mode === "google") {
+        loader.style.display = "none";
+        window.open(`https://www.google.com/search?q=${query}`, '_blank');
+      } else if (mode === "bing") {
+        loader.style.display = "none";
+        window.open(`https://www.bing.com/search?q=${query}`, '_blank');
+      } else if (mode === "q") {
+        const page = input.replace(/[^a-zA-Z0-9-_]/g, "");
+        iframe.src = `resources/websearch/Q/${page}.html`;
+        iframe.onload = () => { iframe.style.display = "block"; loader.style.display = "none"; };
+        iframe.onerror = () => { error.style.display = "block"; loader.style.display = "none"; };
+      } else if (mode === "s") {
+        try {
+          const response = await fetch('resources/websearch/S.csv');
+          const csvText = await response.text();
+          const lines = csvText.split('\n').slice(1);
+          let found = false;
 
+          for (let line of lines) {
+            const [search, result] = line.split(',').map(s => s.trim());
+            if (search.toLowerCase() === input.toLowerCase()) {
+              const htmlContent = `
+                <html>
+                  <body style="background:#2c2c3e; color:#f3f4f6; font-family:sans-serif; padding:1rem;">
+                    <h2>🔎 Result for "${search}"</h2>
+                    <p>${result}</p>
+                  </body>
+                </html>`;
+              const blob = new Blob([htmlContent], { type: 'text/html' });
+              iframe.src = URL.createObjectURL(blob);
+              iframe.onload = () => { iframe.style.display = "block"; loader.style.display = "none"; };
+              found = true;
+              break;
+            }
+          }
+
+          if (!found) {
+            error.style.display = "block";
+            loader.style.display = "none";
+          }
+        } catch (err) {
+          console.error(err);
+          error.style.display = "block";
+          loader.style.display = "none";
+        }
+      } else {
+        const filename = input.replace(/[^a-zA-Z0-9-_]/g, "");
+        iframe.src = `resources/websearch/results/${filename}.html`;
+        iframe.onload = () => { iframe.style.display = "block"; loader.style.display = "none"; };
+        iframe.onerror = () => { error.style.display = "block"; loader.style.display = "none"; };
+      }
+    }
+
+    document.getElementById("searchInput").addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        performSearch();
+      }
+    });
+  </script>
 </body>
 </html>
