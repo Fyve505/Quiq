@@ -1,1 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Update Form - Dark Mode</title>
+<script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+<style>
+  /* Dark mode background and text */
+  body {
+    background-color: #121212;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
 
+  form {
+    background-color: #1f1f1f;
+    padding: 2rem 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 0 15px #3a3a3a;
+    width: 400px;
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    color: #9fef00;
+    letter-spacing: 0.05em;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  textarea {
+    width: 100%;
+    padding: 0.45rem 0.6rem;
+    border-radius: 6px;
+    border: 1.8px solid #444;
+    background-color: #2a2a2a;
+    color: #eee;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    resize: vertical;
+  }
+
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  textarea:focus {
+    border-color: #9fef00;
+    outline: none;
+  }
+
+  input[type="checkbox"] {
+    margin-right: 0.5rem;
+    transform: scale(1.2);
+    accent-color: #9fef00;
+    cursor: pointer;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 1rem 0 1.5rem 0;
+    user-select: none;
+  }
+
+  button {
+    background-color: #9fef00;
+    color: #121212;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border: none;
+    padding: 0.75rem 0;
+    width: 100%;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  button:hover {
+    background-color: #7bc700;
+  }
+
+  .h-captcha {
+    margin: 1.5rem 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Responsive */
+  @media (max-width: 440px) {
+    form {
+      width: 90%;
+      padding: 1.5rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+<form action="#" method="POST" novalidate>
+  <h2>Update Form</h2>
+
+  <label for="name">Name (required):</label>
+  <input type="text" id="name" name="name" required placeholder="Your name" maxlength="50" />
+
+  <label for="email" style="margin-top: 1rem;">Email (required):</label>
+  <input type="email" id="email" name="email" required placeholder="you@example.com" />
+
+  <label for="update" style="margin-top: 1rem;">What to update (required):</label>
+  <textarea id="update" name="update" rows="6" required placeholder="Describe what you want to update..."></textarea>
+
+  <label class="checkbox-label">
+    <input type="checkbox" id="must" name="must" />
+    Must or not
+  </label>
+
+  <div class="h-captcha" data-sitekey="your-hcaptcha-site-key"></div>
+
+  <button type="submit">Submit</button>
+</form>
+
+</body>
+</html>
