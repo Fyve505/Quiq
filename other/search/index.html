@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Quiq Search Debug</title>
+  <title>Quiq Search Engine</title>
   <style>
     :root {
       --primary-color: #4f46e5;
@@ -86,7 +86,7 @@
   </style>
 </head>
 <body>
-  <h1>🔍 Quiq Search Engine (Debug)</h1>
+  <h1>🔍 Quiq Search Engine</h1>
   <div class="search-box">
     <input type="text" id="searchInput" placeholder="Try :S:test or :G:Hello..." oninput="detectMode()" />
     <select id="modeSelector">
@@ -176,32 +176,21 @@ async function performSearch() {
 
   // S Mode (CSV lookup)
   if (mode === "s") {
-    console.log("▶ Entered S mode. Input:", inputText);
     try {
-      const response = await fetch("search/resources/websearch/S.csv");
-      console.log("📁 Fetched S.csv - status:", response.status);
-
+      const response = await fetch("resources/websearch/S.csv");
       const text = await response.text();
-      console.log("📄 CSV Content:\n", text);
 
       const lines = text.trim().split(/\r?\n/).slice(1);
-      console.log("📊 Parsed Lines:", lines);
-
       let found = false;
       for (let line of lines) {
-        console.log("🔍 Processing line:", line);
         const parts = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-        console.log("🧩 Parts:", parts);
-
         if (!parts || parts.length < 2) continue;
 
         const search = parts[0].replace(/^"|"$/g, "").trim();
         const result = parts[1].replace(/^"|"$/g, "").trim();
         const code = parts[2] ? parts[2].replace(/^"|"$/g, "").trim() : "";
 
-        console.log(`🤖 Comparing "${search.toLowerCase()}" to "${inputText.toLowerCase()}"`);
         if (search.toLowerCase() === inputText.toLowerCase()) {
-          console.log("✅ Match found:", search);
           const html = `
             <html><body style="background:#2c2c3e;color:#f3f4f6;font-family:sans-serif;padding:1rem">
               <h2>Result for "${search}"</h2>
@@ -216,13 +205,11 @@ async function performSearch() {
       }
 
       if (!found) {
-        console.warn("⚠️ No match found in CSV.");
         error.style.display = "block";
         loader.style.display = "none";
       }
 
     } catch (err) {
-      console.error("❌ Error in S-mode:", err);
       error.style.display = "block";
       loader.style.display = "none";
     }
