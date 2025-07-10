@@ -160,7 +160,7 @@ async function performSearch() {
 
   if (mode === "q") {
     const safe = inputText.replace(/[^a-zA-Z0-9-_]/g, "");
-    iframe.src = `search/resources/websearch/Q/${safe}.html`;
+    iframe.src = `resources/websearch/Q/${safe}.html`;
     iframe.onload = () => { iframe.style.display = "block"; loader.style.display = "none"; };
     iframe.onerror = () => { error.style.display = "block"; loader.style.display = "none"; };
     return;
@@ -168,7 +168,7 @@ async function performSearch() {
 
   if (mode === "results") {
     const safe = inputText.replace(/[^a-zA-Z0-9-_]/g, "");
-    iframe.src = `search/resources/websearch/results/${safe}.html`;
+    iframe.src = `resources/websearch/results/${safe}.html`;
     iframe.onload = () => { iframe.style.display = "block"; loader.style.display = "none"; };
     iframe.onerror = () => { error.style.display = "block"; loader.style.display = "none"; };
     return;
@@ -177,7 +177,7 @@ async function performSearch() {
   // S Mode (CSV lookup)
   if (mode === "s") {
     try {
-      const response = await fetch("search/resources/websearch/S.csv");
+      const response = await fetch("resources/websearch/S.csv");
       const text = await response.text();
 
       const lines = text.trim().split(/\r?\n/).slice(1);
