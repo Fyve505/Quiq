@@ -178,7 +178,7 @@ async function performSearch() {
   if (mode === "s") {
     console.log("▶ Entered S mode. Input:", inputText);
     try {
-      const response = await fetch("resources/websearch/S.csv");
+      const response = await fetch("search/resources/websearch/S.csv");
       console.log("📁 Fetched S.csv - status:", response.status);
 
       const text = await response.text();
