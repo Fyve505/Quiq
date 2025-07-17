@@ -6,11 +6,25 @@
   <title>Quiq</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <style>
+    :root {
+      --main-bg: #1e1e2f;
+      --accent: #5e9cff;
+      --text: #ffffff;
+      --panel-bg: #2b2b3d;
+      --hover: #3d3d57;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      text-align: center;
+      font-family: 'Segoe UI', sans-serif;
       margin: 0;
       padding: 0;
+      background-color: var(--main-bg);
+      color: var(--text);
+      text-align: center;
     }
 
     .top-bar {
@@ -18,9 +32,10 @@
       justify-content: space-between;
       align-items: center;
       padding: 10px 20px;
-      background: #222;
-      color: white;
+      background: #12121a;
+      color: var(--text);
       position: relative;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     }
 
     .buttons {
@@ -28,22 +43,26 @@
       gap: 10px;
     }
 
-    .buttons button, #admin-btn, #fullscreen-btn, .website-btn, #website-page {
+    .buttons button, #admin-btn, #fullscreen-btn {
       padding: 10px 15px;
-      font-size: 16px;
+      font-size: 15px;
       cursor: pointer;
       border: none;
-      background: #444;
-      color: white;
-      border-radius: 5px;
+      border-radius: 8px;
+      background: linear-gradient(145deg, #2e2e40, #232333);
+      color: var(--text);
+      transition: all 0.2s ease;
     }
 
-    .buttons button:hover, #admin-btn:hover, #fullscreen-btn:hover, .website-btn:hover, #website-page:hover {
-      background: #666;
+    .buttons button:hover,
+    #admin-btn:hover,
+    #fullscreen-btn:hover {
+      transform: scale(1.05);
+      background: var(--hover);
     }
 
     .title {
-      font-size: 24px;
+      font-size: 22px;
       font-weight: bold;
       display: flex;
       align-items: center;
@@ -53,9 +72,9 @@
     }
 
     .title img {
-      width: 30px;
-      height: 30px;
-      margin-right: 10px;
+      width: 28px;
+      height: 28px;
+      margin-right: 8px;
     }
 
     #fullscreen-btn {
@@ -68,29 +87,54 @@
       right: 137px;
     }
 
-    #minigames-container, #extra-container {
-      display: none;
-      margin-top: 20px;
+    .website-btn {
+      padding: 12px 20px;
+      margin: 10px 5px;
+      font-size: 16px;
+      font-weight: bold;
+      background: linear-gradient(to right, #5e9cff, #8a5eff);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: all 0.25s ease;
     }
 
-    .website-btn {
-      padding: 15px;
-      font-weight: bold;
-      border: none;
-      cursor: pointer;
-      margin: 5px;
-      background-color: black;
-      color: white;
-      border-radius: 5px;
+    .website-btn:hover {
+      transform: translateY(-2px) scale(1.03);
+      background: linear-gradient(to right, #7aa9ff, #a177ff);
+    }
+
+    #minigames-container,
+    #extra-container {
+      display: none;
+      background: var(--panel-bg);
+      padding: 15px 0;
+      border-radius: 10px;
+      margin: 20px auto;
+      width: 85%;
+      animation: fadeDown 0.3s ease-out;
+    }
+
+    @keyframes fadeDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     #iframe-container {
-      margin-top: 20px;
-      border: 5px solid red;
-      width: 80%;
+      margin: 20px auto;
+      width: 85%;
       height: 500px;
-      margin-left: auto;
-      margin-right: auto;
+      border: 4px solid var(--accent);
+      border-radius: 12px;
+      overflow: hidden;
       display: none;
     }
 
@@ -100,12 +144,6 @@
       border: none;
     }
 
-    .frozen {
-      pointer-events: none;
-      visibility: hidden;
-    }
-
-    /* Draggable popup styles */
     #pro-popup {
       display: none;
       position: fixed;
@@ -115,54 +153,48 @@
       background: #222;
       color: white;
       width: 300px;
-      padding: 0;
-      border-radius: 8px;
+      border-radius: 10px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.6);
       z-index: 1000;
-      border: 2px solid #555;
-      user-select: none;
+      overflow: hidden;
     }
 
     #pro-popup-header {
       background: #444;
-      padding: 10px;
-      cursor: move;
+      padding: 12px;
       font-weight: bold;
-      border-bottom: 1px solid #666;
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
+      cursor: move;
     }
 
     #pro-popup-content {
       display: grid;
       grid-template-columns: 1fr 1fr;
+      padding: 10px;
       gap: 10px;
-      padding: 15px;
+      background: #333;
     }
 
     #pro-popup-content a {
+      background: #444;
+      padding: 8px;
       color: white;
       text-decoration: none;
-      background: #333;
-      padding: 8px;
-      border-radius: 4px;
-      text-align: center;
-      display: block;
+      border-radius: 5px;
+      transition: background 0.2s;
     }
 
     #pro-popup-content a:hover {
-      background: #555;
+      background: #666;
     }
 
     #pro-popup button {
       width: 100%;
-      background: red;
+      background: crimson;
       color: white;
-      border: none;
       padding: 10px;
-      border-bottom-left-radius: 8px;
-      border-bottom-right-radius: 8px;
+      border: none;
       cursor: pointer;
+      font-weight: bold;
     }
 
     #pro-popup button:hover {
@@ -201,6 +233,7 @@
     <button class="website-btn" onclick="loadIframe('minigame/hangman.html')">HangMan</button>
     <button class="website-btn" onclick="loadIframe('minigame/rps.html')">Rock-Paper-Scissors</button>
     <button class="website-btn" onclick="loadIframe('minigame/runner.html')">Runner</button>
+    <button class="website-btn" onclick="loadIframe('other/search/')">Search</button>
     <button class="website-btn" onclick="loadIframe('minigame/wait.log')">Wait</button>
   </div>
 
@@ -212,15 +245,15 @@
     <div id="pro-popup-header">Links</div>
     <div id="pro-popup-content">
       <a href="https://quiq.vercel.app/other/credits.html" target="_blank">Credits</a>
-      <a href="https://quiq.vercel.app/other/license.html" target="_blank">licenses</a>
-      <a href="https://example.com" target="_blank">wait: 3</a>
-      <a href="https://example.com" target="_blank">wait: 4</a>
-      <a href="https://example.com" target="_blank">wait: 5</a>
-      <a href="https://example.com" target="_blank">wait: 6</a>
-      <a href="https://example.com" target="_blank">wait: 7</a>
-      <a href="https://example.com" target="_blank">wait: 8</a>
-      <a href="https://example.com" target="_blank">wait: 9</a>
-      <a href="https://example.com" target="_blank">wait: 10</a>
+      <a href="https://quiq.vercel.app/other/license.html" target="_blank">License</a>
+      <a href="#">wait: 3</a>
+      <a href="#">wait: 4</a>
+      <a href="#">wait: 5</a>
+      <a href="#">wait: 6</a>
+      <a href="#">wait: 7</a>
+      <a href="#">wait: 8</a>
+      <a href="#">wait: 9</a>
+      <a href="#">wait: 10</a>
     </div>
     <button onclick="toggleProPopup()">Close</button>
   </div>
@@ -281,7 +314,7 @@
       popup.style.display = (popup.style.display === 'none' || popup.style.display === '') ? 'block' : 'none';
     }
 
-    // Drag functionality for pro-popup
+    // Drag functionality
     let dragPopup = document.getElementById("pro-popup");
     let header = document.getElementById("pro-popup-header");
     let isDragging = false;
@@ -293,9 +326,7 @@
       offsetY = e.clientY - dragPopup.offsetTop;
     });
 
-    document.addEventListener('mouseup', () => {
-      isDragging = false;
-    });
+    document.addEventListener('mouseup', () => isDragging = false);
 
     document.addEventListener('mousemove', (e) => {
       if (isDragging) {
@@ -309,6 +340,7 @@
   <script src="https://quiq.vercel.app/code/quiq.js"></script>
 </body>
 </html>
+
 
 
 
