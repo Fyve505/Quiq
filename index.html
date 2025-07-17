@@ -1,25 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Quiq UI</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quiq</title>
+  <link rel="icon" type="image/png" href="favicon.png">
   <style>
+    :root {
+      --main-bg: #1e1e2f;
+      --accent: #5e9cff;
+      --text: #ffffff;
+      --panel-bg: #2b2b3d;
+      --hover: #3d3d57;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      background-color: #121212;
-      color: white;
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
       padding: 0;
+      background-color: var(--main-bg);
+      color: var(--text);
+      text-align: center;
     }
 
     .top-bar {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      background-color: #1e1e1e;
+      align-items: center;
       padding: 10px 20px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      background: #12121a;
+      color: var(--text);
+      position: relative;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     }
 
     .buttons {
@@ -27,91 +43,162 @@
       gap: 10px;
     }
 
-    .icon-btn {
-      background-color: #2a2a2a;
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 8px;
+    .buttons button, #admin-btn, #fullscreen-btn {
+      padding: 10px 15px;
+      font-size: 15px;
       cursor: pointer;
-      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(145deg, #2e2e40, #232333);
+      color: var(--text);
+      transition: all 0.2s ease;
+    }
+
+    .buttons button:hover,
+    #admin-btn:hover,
+    #fullscreen-btn:hover {
+      transform: scale(1.05);
+      background: var(--hover);
+    }
+
+    .title {
+      font-size: 22px;
+      font-weight: bold;
       display: flex;
       align-items: center;
-      transition: background-color 0.2s;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
     }
 
-    .icon-btn:hover {
-      background-color: #444;
+    .title img {
+      width: 28px;
+      height: 28px;
+      margin-right: 8px;
     }
 
-    .icon-btn i {
-      margin-right: 6px;
+    #fullscreen-btn {
+      position: absolute;
+      right: 20px;
     }
 
-    #iframe-container {
-      margin: 20px;
-      display: none;
-      animation: fadeInFrame 0.5s ease;
-    }
-
-    #iframe-container.fade-in {
-      animation: fadeInFrame 0.5s ease;
-    }
-
-    @keyframes fadeInFrame {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    iframe {
-      width: 100%;
-      height: 600px;
-      border: none;
-      border-radius: 10px;
-    }
-
-    #loading-spinner {
-      display: none;
-      text-align: center;
-      padding: 40px;
-    }
-
-    .spinner {
-      border: 6px solid #333;
-      border-top: 6px solid #00bcd4;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 0.9s linear infinite;
-      margin: auto;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    #admin-btn {
+      position: absolute;
+      right: 137px;
     }
 
     .website-btn {
-      margin: 8px;
-      padding: 10px 16px;
-      border-radius: 10px;
-      background-color: #2c2c2c;
-      border: none;
+      padding: 12px 20px;
+      margin: 10px 5px;
+      font-size: 16px;
+      font-weight: bold;
+      background: linear-gradient(to right, #5e9cff, #8a5eff);
       color: white;
+      border: none;
+      border-radius: 10px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      transition: background 0.2s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: all 0.25s ease;
     }
 
     .website-btn:hover {
-      background-color: #444;
+      transform: translateY(-2px) scale(1.03);
+      background: linear-gradient(to right, #7aa9ff, #a177ff);
     }
 
     #minigames-container,
     #extra-container {
       display: none;
-      margin-left: 10px;
+      background: var(--panel-bg);
+      padding: 15px 0;
+      border-radius: 10px;
+      margin: 20px auto;
+      width: 85%;
+      animation: fadeDown 0.3s ease-out;
+    }
+
+    @keyframes fadeDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #iframe-container {
+      margin: 20px auto;
+      width: 85%;
+      height: 500px;
+      border: 4px solid var(--accent);
+      border-radius: 12px;
+      overflow: hidden;
+      display: none;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    #pro-popup {
+      display: none;
+      position: fixed;
+      top: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #222;
+      color: white;
+      width: 300px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+      z-index: 1000;
+      overflow: hidden;
+    }
+
+    #pro-popup-header {
+      background: #444;
+      padding: 12px;
+      font-weight: bold;
+      cursor: move;
+    }
+
+    #pro-popup-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 10px;
+      gap: 10px;
+      background: #333;
+    }
+
+    #pro-popup-content a {
+      background: #444;
+      padding: 8px;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background 0.2s;
+    }
+
+    #pro-popup-content a:hover {
+      background: #666;
+    }
+
+    #pro-popup button {
+      width: 100%;
+      background: crimson;
+      color: white;
+      padding: 10px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #pro-popup button:hover {
+      background: darkred;
     }
   </style>
 </head>
@@ -119,82 +206,59 @@
 
   <div class="top-bar">
     <div class="buttons">
-      <button class="icon-btn" onclick="reloadPage()"><i class="fas fa-rotate"></i>Reload</button>
-      <button class="icon-btn" onclick="closeFrame()"><i class="fas fa-xmark"></i>Close Frame</button>
-      <button class="icon-btn" onclick="window.close()"><i class="fas fa-door-closed"></i>Exit</button>
-      <button class="icon-btn" onclick="toggleProPopup()"><i class="fas fa-bars"></i></button>
-      <button class="icon-btn" onclick="window.open('https://mega.nz/file/BYImwLYS#...', '_blank')"><i class="fas fa-download"></i>App</button>
+      <button onclick="reloadPage()">Reload</button>
+      <button onclick="closeFrame()">Close Frame</button>
+      <button onclick="window.close()">Exit</button>
+      <button onclick="toggleProPopup()">|</button>
+      <button onclick="window.open('https://mega.nz/file/7V5WjIrQ#z1nbKNSwi7DTzyAfyxlkqwiAcsTSVHHQz8sO5FKRlwY', '_blank')">App</button>
     </div>
-    <h1 style="margin: 0;">Quiq</h1>
-    <div class="buttons">
-      <button id="fullscreen-btn" class="icon-btn" onclick="toggleFullScreen()"><i class="fas fa-expand"></i>Full Screen</button>
-      <button id="admin-btn" class="icon-btn" onclick="window.location.href='other/admin.html';"><i class="fas fa-lock"></i>Admin</button>
+    <div class="title">
+      <img src="icon.png" alt="Quiq Icon"> Quiq
     </div>
+    <button id="fullscreen-btn" onclick="toggleFullScreen()">Full Screen</button>
+    <button id="admin-btn" onclick="window.location.href='other/admin.html';">Admin</button>
   </div>
 
-  <div style="margin: 20px;">
-    <button id="minigames" class="website-btn" onclick="toggleMinigames()"><i class="fas fa-gamepad"></i>Minigames</button>
-    <button id="extra" class="website-btn" onclick="toggleExtra()"><i class="fas fa-star"></i>Extra</button>
+  <button id="extra" class="website-btn" onclick="toggleExtra()">Extra</button>
+  <button id="minigames" class="website-btn" onclick="toggleMinigames()">Minigames</button>
+
+  <div id="extra-container">
+    <button class="website-btn" onclick="loadIframe('other/search/')">Search</button>
+    <button class="website-btn" onclick="loadIframe('other/ai')">Ai</button>
+    <button class="website-btn" onclick="window.open('https://extra-quiq.netlify.app/', '_blank')">Quiq-Extra</button>
   </div>
 
   <div id="minigames-container">
-    <button class="website-btn" onclick="loadIframe('games/minecraft/index.html')"><i class="fas fa-cube"></i>Minecraft</button>
-    <button class="website-btn" onclick="loadIframe('games/1v1lol/index.html')"><i class="fas fa-person-rifle"></i>1v1.lol</button>
-    <button class="website-btn" onclick="loadIframe('games/slope/index.html')"><i class="fas fa-arrow-trend-up"></i>Slope</button>
+    <button class="website-btn" onclick="loadIframe('minigame/xo.html')">XO</button>
+    <button class="website-btn" onclick="loadIframe('minigame/hangman.html')">HangMan</button>
+    <button class="website-btn" onclick="loadIframe('minigame/rps.html')">Rock-Paper-Scissors</button>
+    <button class="website-btn" onclick="loadIframe('minigame/runner.html')">Runner</button>
+    <button class="website-btn" onclick="loadIframe('other/search/')">Search</button>
+    <button class="website-btn" onclick="loadIframe('minigame/wait.log')">Wait</button>
   </div>
-
-  <div id="extra-container">
-    <button class="website-btn" onclick="loadIframe('other/search/')"><i class="fas fa-magnifying-glass"></i>Search</button>
-    <button class="website-btn" onclick="loadIframe('other/ai')"><i class="fas fa-robot"></i>AI</button>
-    <button class="website-btn" onclick="window.open('https://extra-quiq.netlify.app/', '_blank')"><i class="fas fa-up-right-from-square"></i>Quiq-Extra</button>
-  </div>
-
-  <div id="loading-spinner"><div class="spinner"></div></div>
 
   <div id="iframe-container">
-    <iframe id="iframe" src=""></iframe>
+    <iframe id="iframe" src="about:blank"></iframe>
+  </div>
+
+  <div id="pro-popup">
+    <div id="pro-popup-header">Links</div>
+    <div id="pro-popup-content">
+      <a href="https://quiq.vercel.app/other/credits.html" target="_blank">Credits</a>
+      <a href="https://quiq.vercel.app/other/license.html" target="_blank">License</a>
+      <a href="#">wait: 3</a>
+      <a href="#">wait: 4</a>
+      <a href="#">wait: 5</a>
+      <a href="#">wait: 6</a>
+      <a href="#">wait: 7</a>
+      <a href="#">wait: 8</a>
+      <a href="#">wait: 9</a>
+      <a href="#">wait: 10</a>
+    </div>
+    <button onclick="toggleProPopup()">Close</button>
   </div>
 
   <script>
-    function reloadPage() {
-      location.reload();
-    }
-
-    function closeFrame() {
-      document.getElementById('iframe').src = "";
-      document.getElementById('iframe-container').style.display = "none";
-    }
-
-    function toggleProPopup() {
-      alert("Popup menu logic here.");
-    }
-
-    function toggleFullScreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
-      } else {
-        document.exitFullscreen();
-      }
-    }
-
-    function loadIframe(url) {
-      const iframeContainer = document.getElementById('iframe-container');
-      const iframe = document.getElementById('iframe');
-      const spinner = document.getElementById('loading-spinner');
-
-      spinner.style.display = 'block';
-      iframeContainer.style.display = 'none';
-      iframe.src = url;
-
-      iframe.onload = () => {
-        spinner.style.display = 'none';
-        iframeContainer.style.display = 'block';
-        iframeContainer.classList.remove('fade-in');
-        void iframeContainer.offsetWidth;
-        iframeContainer.classList.add('fade-in');
-      };
-    }
-
     function toggleMinigames() {
       const container = document.getElementById('minigames-container');
       container.style.display = (container.style.display === 'block') ? 'none' : 'block';
@@ -218,10 +282,65 @@
         extraContainer.style.display = 'none';
       }
     });
+
+    function loadIframe(url) {
+      const iframeContainer = document.getElementById('iframe-container');
+      const iframe = document.getElementById('iframe');
+      iframe.src = url;
+      iframeContainer.style.display = "block";
+    }
+
+    function reloadPage() {
+      location.reload();
+    }
+
+    function closeFrame() {
+      const iframeContainer = document.getElementById('iframe-container');
+      iframeContainer.style.display = "none";
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    function toggleProPopup() {
+      const popup = document.getElementById('pro-popup');
+      popup.style.display = (popup.style.display === 'none' || popup.style.display === '') ? 'block' : 'none';
+    }
+
+    // Drag functionality
+    let dragPopup = document.getElementById("pro-popup");
+    let header = document.getElementById("pro-popup-header");
+    let isDragging = false;
+    let offsetX, offsetY;
+
+    header.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      offsetX = e.clientX - dragPopup.offsetLeft;
+      offsetY = e.clientY - dragPopup.offsetTop;
+    });
+
+    document.addEventListener('mouseup', () => isDragging = false);
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        dragPopup.style.left = `${e.clientX - offsetX}px`;
+        dragPopup.style.top = `${e.clientY - offsetY}px`;
+        dragPopup.style.transform = 'none';
+      }
+    });
   </script>
 
+  <script src="https://quiq.vercel.app/code/quiq.js"></script>
 </body>
 </html>
+
 
 
 
