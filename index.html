@@ -68,8 +68,7 @@
       right: 137px;
     }
 
-    #websites-container,
-    #minigames-container {
+    #minigames-container, #extra-container {
       display: none;
       margin-top: 20px;
     }
@@ -83,20 +82,6 @@
       background-color: black;
       color: white;
       border-radius: 5px;
-    }
-
-    #banana {
-      background-color: #FFEA00;
-      color: black;
-    }
-
-    #ice {
-      background-color: #5A7BAE;
-    }
-
-    #website-page {
-      background-color: white;
-      color: black;
     }
 
     #iframe-container {
@@ -113,10 +98,6 @@
       width: 100%;
       height: 100%;
       border: none;
-    }
-
-    #content {
-      /* Content to be frozen */
     }
 
     .frozen {
@@ -206,14 +187,13 @@
     <button id="admin-btn" onclick="window.location.href='other/admin.html';">Admin</button>
   </div>
 
-  <button id="websites" class="website-btn" onclick="toggleWebsites()">Websites</button>
+  <button id="extra" class="website-btn" onclick="toggleExtra()">Extra</button>
   <button id="minigames" class="website-btn" onclick="toggleMinigames()">Minigames</button>
 
-  <div id="websites-container">
-    <button class="website-btn" onclick="loadIframe('https://use-less-stuff.mozellosite.com/home')">Use-less-stuff</button>
-    <button id="banana" class="website-btn" onclick="loadIframe('https://banana-web-6.mozellosite.com')">Banana-Web-6</button>
-    <button id="ice" class="website-btn" onclick="loadIframe('https://ice-web.mozellosite.com')">Ice-Web</button>
-    <button id="website-page" class="website-btn" onclick="window.open('other/websites.html')">Website-Page</button>
+  <div id="extra-container">
+    <button class="website-btn" onclick="loadIframe('other/search/')">Search</button>
+    <button class="website-btn" onclick="loadIframe('other/ai')">Ai</button>
+    <button class="website-btn" onclick="window.open('https://extra-quiq.netlify.app/', '_blank')">Quiq-Extra</button>
   </div>
 
   <div id="minigames-container">
@@ -246,32 +226,28 @@
     <button onclick="toggleProPopup()">Close</button>
   </div>
 
-  <div id="content">
-    <!-- Main content that will be frozen -->
-  </div>
-
   <script>
-    function toggleWebsites() {
-      const container = document.getElementById('websites-container');
-      container.style.display = (container.style.display === 'block') ? 'none' : 'block';
-    }
-
     function toggleMinigames() {
       const container = document.getElementById('minigames-container');
       container.style.display = (container.style.display === 'block') ? 'none' : 'block';
     }
 
+    function toggleExtra() {
+      const container = document.getElementById('extra-container');
+      container.style.display = (container.style.display === 'block') ? 'none' : 'block';
+    }
+
     document.addEventListener('click', function(event) {
-      const websitesBtn = document.getElementById('websites');
-      const websitesContainer = document.getElementById('websites-container');
       const minigamesBtn = document.getElementById('minigames');
       const minigamesContainer = document.getElementById('minigames-container');
+      const extraBtn = document.getElementById('extra');
+      const extraContainer = document.getElementById('extra-container');
 
-      if (!websitesBtn.contains(event.target) && !websitesContainer.contains(event.target)) {
-        websitesContainer.style.display = 'none';
-      }
       if (!minigamesBtn.contains(event.target) && !minigamesContainer.contains(event.target)) {
         minigamesContainer.style.display = 'none';
+      }
+      if (!extraBtn.contains(event.target) && !extraContainer.contains(event.target)) {
+        extraContainer.style.display = 'none';
       }
     });
 
@@ -330,9 +306,11 @@
       }
     });
   </script>
+
   <script src="https://quiq.vercel.app/code/quiq.js"></script>
 </body>
 </html>
+
 
 
 
