@@ -2,20 +2,178 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AI Assistant - Powered by Cohere</title>
 
-  <!-- Font Awesome (One Line) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  />
 
-  <!-- Main Styles -->
-  <link rel="stylesheet" href="ai/styles.css" />
+  <style>
+    /* Basic reset & styling */
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #121212;
+      color: #eee;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .chat-app {
+      display: flex;
+      flex-direction: column;
+      width: 400px;
+      max-width: 100%;
+      height: 600px;
+      background: #1e1e1e;
+      border-radius: 8px;
+      box-shadow: 0 0 15px #000;
+      overflow: hidden;
+    }
+    header {
+      background: #272727;
+      padding: 15px 20px;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      color: #00ffa2;
+      user-select: none;
+    }
+
+    .api-key-container {
+      background: #222;
+      padding: 10px 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+
+    #api-key-input {
+      flex: 1;
+      background: #121212;
+      border: 1.5px solid #555;
+      border-radius: 5px;
+      padding: 6px 10px;
+      color: #eee;
+      font-family: monospace;
+      font-size: 0.9rem;
+      outline-offset: 2px;
+      transition: border-color 0.2s;
+    }
+    #api-key-input:focus {
+      border-color: #00ffa2;
+      outline: none;
+      background: #181818;
+    }
+
+    #chat-box {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #121212;
+      scrollbar-width: thin;
+      scrollbar-color: #00ffa2 #1e1e1e;
+    }
+    #chat-box::-webkit-scrollbar {
+      width: 8px;
+    }
+    #chat-box::-webkit-scrollbar-thumb {
+      background-color: #00ffa2;
+      border-radius: 4px;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 10px 15px;
+      border-radius: 20px;
+      word-break: break-word;
+      white-space: pre-wrap;
+      font-size: 0.95rem;
+      line-height: 1.3;
+    }
+    .message.user {
+      align-self: flex-end;
+      background: #00ffa2;
+      color: #121212;
+      border-bottom-right-radius: 4px;
+    }
+    .message.ai {
+      align-self: flex-start;
+      background: #272727;
+      color: #ccc;
+      border-bottom-left-radius: 4px;
+      white-space: pre-wrap;
+    }
+
+    form.chat-form {
+      background: #222;
+      padding: 12px 15px;
+      display: flex;
+      gap: 8px;
+    }
+
+    #user-input {
+      flex: 1;
+      padding: 10px 15px;
+      border-radius: 25px;
+      border: none;
+      font-size: 1rem;
+      font-family: inherit;
+      outline-offset: 2px;
+      outline-color: #00ffa2;
+      background: #121212;
+      color: #eee;
+    }
+    #user-input::placeholder {
+      color: #555;
+    }
+
+    button[type="submit"] {
+      background: #00ffa2;
+      border: none;
+      color: #121212;
+      font-size: 1.3rem;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s ease;
+    }
+    button[type="submit"]:hover {
+      background: #00cc7a;
+    }
+  </style>
 </head>
 <body>
   <div class="chat-app">
     <header>
-      <h1><i class="fas fa-robot"></i> AI Assistant</h1>
+      <i class="fas fa-robot"></i> AI Assistant
     </header>
+
+    <div class="api-key-container">
+      <label for="api-key-input">Cohere API Key:</label>
+      <input
+        type="password"
+        id="api-key-input"
+        placeholder="Paste your Cohere API key here"
+        autocomplete="off"
+        spellcheck="false"
+      />
+    </div>
 
     <main id="chat-box" class="chat-box">
       <div class="message ai">
@@ -31,109 +189,190 @@
         autocomplete="off"
         required
       />
-      <button type="submit">
+      <button type="submit" title="Send">
         <i class="fas fa-paper-plane"></i>
       </button>
     </form>
   </div>
-  
-  
-<script>
-  function escapeHTML(str) {
-    return str.replace(/&/g, "&amp;")
-              .replace(/</g, "&lt;")
-              .replace(/>/g, "&gt;");
-  }
 
-  function parseMarkdown(text) {
-    const lines = text.split('\n');
-    const parsed = [];
-    let ulOpen = false;
-    let inCodeBlock = false;
+  <script>
+    function escapeHTML(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
 
-    lines.forEach(line => {
-      const trimmed = line.trim();
+    function parseMarkdown(text) {
+      const lines = text.split("\n");
+      const parsed = [];
+      let ulOpen = false;
+      let inCodeBlock = false;
 
-      if (trimmed.startsWith("```")) {
-        if (!inCodeBlock) {
-          parsed.push('<pre><code>');
-          inCodeBlock = true;
-        } else {
-          parsed.push('</code></pre>');
-          inCodeBlock = false;
+      lines.forEach((line) => {
+        const trimmed = line.trim();
+
+        if (trimmed.startsWith("```")) {
+          if (!inCodeBlock) {
+            parsed.push("<pre><code>");
+            inCodeBlock = true;
+          } else {
+            parsed.push("</code></pre>");
+            inCodeBlock = false;
+          }
+          return;
         }
-        return;
-      }
 
-      if (inCodeBlock) {
-        parsed.push(escapeHTML(line));
-        return;
-      }
+        if (inCodeBlock) {
+          parsed.push(escapeHTML(line));
+          return;
+        }
 
-      if (trimmed.startsWith('---')) {
+        if (trimmed.startsWith("---")) {
+          if (ulOpen) {
+            parsed.push("</ul>");
+            ulOpen = false;
+          }
+          parsed.push("<hr>");
+          return;
+        }
+
+        if (trimmed.startsWith("#### ")) {
+          if (ulOpen) {
+            parsed.push("</ul>");
+            ulOpen = false;
+          }
+          parsed.push(`<h4>${escapeHTML(trimmed.slice(5))}</h4>`);
+          return;
+        }
+
+        if (trimmed.startsWith("### ")) {
+          if (ulOpen) {
+            parsed.push("</ul>");
+            ulOpen = false;
+          }
+          parsed.push(`<h3>${escapeHTML(trimmed.slice(4))}</h3>`);
+          return;
+        }
+
+        if (trimmed.startsWith("- ")) {
+          if (!ulOpen) {
+            parsed.push("<ul>");
+            ulOpen = true;
+          }
+          let item = escapeHTML(trimmed.slice(2)).replace(
+            /\*\*(.+?)\*\*/g,
+            "<strong>$1</strong>"
+          );
+          parsed.push(`<li>${item}</li>`);
+          return;
+        }
+
         if (ulOpen) {
-          parsed.push('</ul>');
+          parsed.push("</ul>");
           ulOpen = false;
         }
-        parsed.push('<hr>');
+
+        parsed.push(
+          escapeHTML(trimmed).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+        );
+      });
+
+      if (ulOpen) parsed.push("</ul>");
+      if (inCodeBlock) parsed.push("</code></pre>");
+
+      return parsed.join("\n");
+    }
+
+    function formatDiv(div) {
+      if (!div.classList.contains("ai")) return;
+      const parsedHTML = parseMarkdown(div.textContent);
+      div.innerHTML = parsedHTML;
+    }
+
+    function appendMessage(sender, text) {
+      const msg = document.createElement("div");
+      msg.classList.add("message", sender);
+      msg.textContent = text;
+      document.getElementById("chat-box").appendChild(msg);
+      msg.scrollIntoView({ behavior: "smooth" });
+      if (sender === "ai") formatDiv(msg);
+    }
+
+    async function callCohereChatAPI(userMessage) {
+      if (!userMessage || userMessage.trim().length === 0) {
+        throw new Error("Empty user message");
+      }
+
+      const apiKeyInput = document.getElementById("api-key-input");
+      const apiKey = apiKeyInput.value.trim();
+      if (!apiKey) throw new Error("API key is missing. Paste your Cohere API key on top.");
+
+      const systemPrompt = "You are a helpful assistant.";
+
+      const prompt = `${systemPrompt}\nUser: ${userMessage}\nAssistant:`;
+
+      if (prompt.trim().length === 0) {
+        throw new Error("Prompt is empty after construction");
+      }
+
+      // console.log("Sending prompt to Cohere:", JSON.stringify(prompt));
+
+      const response = await fetch("https://api.cohere.ai/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "command-xlarge-nightly",
+          message: prompt,
+        }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = "Cohere Chat API error";
+        try {
+          const errData = await response.json();
+          if (errData.message) errorMessage = errData.message;
+        } catch {}
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      // console.log("Cohere response:", data);
+
+      return data.text?.trim() || "No response from Cohere.";
+    }
+
+    document.getElementById("chat-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const userInput = document.getElementById("user-input");
+      const userMessage = userInput.value.trim();
+
+      if (!userMessage) {
+        console.warn("Empty input — ignoring.");
         return;
       }
 
-      if (trimmed.startsWith('#### ')) {
-        if (ulOpen) {
-          parsed.push('</ul>');
-          ulOpen = false;
-        }
-        parsed.push(`<h4>${escapeHTML(trimmed.slice(5))}</h4>`);
-        return;
-      }
+      appendMessage("user", userMessage);
+      userInput.value = "";
 
-      if (trimmed.startsWith('### ')) {
-        if (ulOpen) {
-          parsed.push('</ul>');
-          ulOpen = false;
-        }
-        parsed.push(`<h3>${escapeHTML(trimmed.slice(4))}</h3>`);
-        return;
-      }
+      appendMessage("ai", "Typing...");
 
-      if (trimmed.startsWith('- ')) {
-        if (!ulOpen) {
-          parsed.push('<ul>');
-          ulOpen = true;
-        }
-        let item = escapeHTML(trimmed.slice(2)).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-        parsed.push(`<li>${item}</li>`);
-        return;
-      }
+      try {
+        const aiResponse = await callCohereChatAPI(userMessage);
 
-      if (ulOpen) {
-        parsed.push('</ul>');
-        ulOpen = false;
+        const aiMessages = document.querySelectorAll(".message.ai");
+        aiMessages[aiMessages.length - 1].textContent = aiResponse;
+        formatDiv(aiMessages[aiMessages.length - 1]);
+      } catch (error) {
+        console.error("API call error:", error);
+        const aiMessages = document.querySelectorAll(".message.ai");
+        aiMessages[aiMessages.length - 1].textContent = `Error: ${error.message}`;
       }
-
-      parsed.push(escapeHTML(trimmed).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>'));
     });
-
-    if (ulOpen) parsed.push('</ul>');
-    if (inCodeBlock) parsed.push('</code></pre>');
-
-    return parsed.join('\n');
-  }
-
-  function formatDiv(div) {
-    if (!div.classList.contains("ai")) return;
-    const parsedHTML = parseMarkdown(div.textContent);
-    div.innerHTML = parsedHTML;
-  }
-
-  window.formatDiv = formatDiv; // make it global for script.js
-</script>
-
-
-
-
-
-  <script src="ai/script.js"></script>
+  </script>
 </body>
 </html>
