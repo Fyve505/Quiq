@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quiq AI Assistant - Powered by Cohere</title>
+  <title>AI Assistant - Powered by Cohere</title>
 
   <!-- Font Awesome (One Line) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
   <!-- Main Styles -->
-  <link rel="stylesheet" href="ai/styles.css" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="chat-app">
@@ -36,6 +36,104 @@
       </button>
     </form>
   </div>
-  <script src="ai/script.js"></script>
+  
+  
+<script>
+  function escapeHTML(str) {
+    return str.replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;");
+  }
+
+  function parseMarkdown(text) {
+    const lines = text.split('\n');
+    const parsed = [];
+    let ulOpen = false;
+    let inCodeBlock = false;
+
+    lines.forEach(line => {
+      const trimmed = line.trim();
+
+      if (trimmed.startsWith("```")) {
+        if (!inCodeBlock) {
+          parsed.push('<pre><code>');
+          inCodeBlock = true;
+        } else {
+          parsed.push('</code></pre>');
+          inCodeBlock = false;
+        }
+        return;
+      }
+
+      if (inCodeBlock) {
+        parsed.push(escapeHTML(line));
+        return;
+      }
+
+      if (trimmed.startsWith('---')) {
+        if (ulOpen) {
+          parsed.push('</ul>');
+          ulOpen = false;
+        }
+        parsed.push('<hr>');
+        return;
+      }
+
+      if (trimmed.startsWith('#### ')) {
+        if (ulOpen) {
+          parsed.push('</ul>');
+          ulOpen = false;
+        }
+        parsed.push(`<h4>${escapeHTML(trimmed.slice(5))}</h4>`);
+        return;
+      }
+
+      if (trimmed.startsWith('### ')) {
+        if (ulOpen) {
+          parsed.push('</ul>');
+          ulOpen = false;
+        }
+        parsed.push(`<h3>${escapeHTML(trimmed.slice(4))}</h3>`);
+        return;
+      }
+
+      if (trimmed.startsWith('- ')) {
+        if (!ulOpen) {
+          parsed.push('<ul>');
+          ulOpen = true;
+        }
+        let item = escapeHTML(trimmed.slice(2)).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        parsed.push(`<li>${item}</li>`);
+        return;
+      }
+
+      if (ulOpen) {
+        parsed.push('</ul>');
+        ulOpen = false;
+      }
+
+      parsed.push(escapeHTML(trimmed).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>'));
+    });
+
+    if (ulOpen) parsed.push('</ul>');
+    if (inCodeBlock) parsed.push('</code></pre>');
+
+    return parsed.join('\n');
+  }
+
+  function formatDiv(div) {
+    if (!div.classList.contains("ai")) return;
+    const parsedHTML = parseMarkdown(div.textContent);
+    div.innerHTML = parsedHTML;
+  }
+
+  window.formatDiv = formatDiv; // make it global for script.js
+</script>
+
+
+
+
+
+  <script src="script.js"></script>
 </body>
 </html>
