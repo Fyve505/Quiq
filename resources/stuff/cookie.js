@@ -61,7 +61,7 @@ function showCookiePopup() {
                 display:flex;flex-direction:column;justify-content:center;align-items:center;
                 height:100vh;text-align:center;font-family:'Segoe UI',sans-serif;
             ">
-                <h2 style="color:red;">You denied the cookies, so you can't use it</h2>
+                <h2 style="color:red;">You denied the cookies, so you can't use the site.</h2>
                 <button onclick="location.reload()" style="
                     margin-top:20px;padding:10px 20px;border:none;background:#2196f3;color:white;
                     border-radius:8px;cursor:pointer;font-size:16px;transition:0.2s;
