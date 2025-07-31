@@ -45,9 +45,9 @@ function showCookiePopup() {
     popup.querySelector('.deny').onclick = () => {
         document.body.innerHTML = `
             <div class="denied" style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;text-align:center;font-family:'Segoe UI',sans-serif;">
-                <h2>You denied the cookies, so you can't use it</h2>
+                <h2>You denied the cookies, so you can't use the website cause it need it.</h2>
                 <button onclick="location.reload()" style="
-                    margin-top:20px;padding:10px 20px;border:none;background:#2196f3;color:white;border-radius:8px;cursor:pointer;font-size:16px;
+                    margin-top:20px;padding:10px 20px;border:none;background:#2196f3;color:white;border-radius:8px;cursor:pointer;font-size:16px;color:red;
                 ">Go Back</button>
             </div>
         `;
