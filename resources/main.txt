@@ -1,2 +1,3 @@
 <script src="/resources/stuff/right-click.js"></script>
 <script src="/resources/stuff/No-Scroll.js"></script>
+<script src="/resources/stuff/cookie.js"></script>
