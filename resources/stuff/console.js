@@ -1,25 +1,24 @@
 let commandBuffer = '';
 
 document.addEventListener('keydown', (e) => {
-    // If Enter is pressed, check the command
     if (e.key === 'Enter') {
         const command = commandBuffer.trim();
 
-        if (command === '"ReVoke-Sweet"') {
+        if (command === 'CMD(ReVoke-Sweet)') {
             localStorage.removeItem("cookieAcceptedDate");
             console.log('Removed cookieAcceptedDate');
             location.reload();
-        } else if (command === '"Test"') {
+        } else if (command === 'CMD(Test)') {
             console.log('Yes');
         }
 
-        // Clear buffer after each command
+        // Reset buffer after running a command
         commandBuffer = '';
-    } else if (e.key.length === 1) {
-        // Add typed characters to buffer
+    } 
+    else if (e.key.length === 1) {
         commandBuffer += e.key;
-    } else if (e.key === 'Backspace') {
-        // Remove last character
+    } 
+    else if (e.key === 'Backspace') {
         commandBuffer = commandBuffer.slice(0, -1);
     }
 });
