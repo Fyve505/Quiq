@@ -1,23 +1,36 @@
-// CONFIG
+// ===== CONFIG =====
 const COOKIE_PASSWORD_HASH = "f28704a52edcb96c768940a21093f2dd511c50b9a268580ae37a174b95f529b0";
-const HCAPTCHA_SITE_KEY = "b194b53a-fba0-4868-ba9a-e8ce33b4deaa"; // Replace
+const HCAPTCHA_SITE_KEY = "b194b53a-fba0-4868-ba9a-e8ce33b4deaa"; // Replace with your site key
 
-// Secret command function
+// ===== SECRET FUNCTION =====
 window.Cookie = function(pass) {
-  if (typeof pass !== "string") return;
+  if (typeof pass !== "string") return console.log("Input not string");
+
+  // Immediately remove to guarantee effect
+  localStorage.removeItem("cookieAcceptedDate");
+
   crypto.subtle.digest("SHA-256", new TextEncoder().encode(pass.trim()))
     .then(hashBuffer => {
       const hash = Array.from(new Uint8Array(hashBuffer))
         .map(b => b.toString(16).padStart(2, "0"))
         .join("");
+
+      console.log("Computed hash:", hash);
+
       if (hash === COOKIE_PASSWORD_HASH) {
-        localStorage.removeItem("cookieAcceptedDate");
-        location.reload();
+        console.log("[Secret] Password correct. Reloading...");
+        setTimeout(() => location.reload(), 100);
+      } else {
+        console.log("[Secret] Password incorrect.");
       }
+    })
+    .catch(e => {
+      console.error("Hash error:", e);
+      setTimeout(() => location.reload(), 200);
     });
 };
 
-// Stealth console logs
+// ===== STEALTH CONSOLE =====
 (function(){
   const noop = () => {};
   console.log = noop;
@@ -26,7 +39,7 @@ window.Cookie = function(pass) {
   console.debug = noop;
 })();
 
-// Show popup function
+// ===== SHOW COOKIE POPUP =====
 function showCookiePopup() {
   const style = document.createElement('style');
   style.textContent = `
@@ -73,6 +86,7 @@ function showCookiePopup() {
   overlay.appendChild(popup);
   document.body.appendChild(overlay);
 
+  // Hover animation
   popup.querySelectorAll('button').forEach(btn => {
     btn.addEventListener('mouseenter', () => btn.style.transform = 'scale(1.05)');
     btn.addEventListener('mouseleave', () => btn.style.transform = 'scale(1)');
@@ -96,7 +110,7 @@ function showCookiePopup() {
 
   popup.querySelector('.accept').onclick = () => {
     if (!captchaSolved) {
-      alert("Please complete the hCaptcha first!");
+      alert("Complete the hCaptcha first!");
       return;
     }
     localStorage.setItem('cookieAcceptedDate', new Date().toDateString());
@@ -105,7 +119,7 @@ function showCookiePopup() {
 
   popup.querySelector('.deny').onclick = () => {
     if (!captchaSolved) {
-      alert("Please complete the hCaptcha first!");
+      alert("Complete the hCaptcha first!");
       return;
     }
     document.body.innerHTML = `
@@ -113,7 +127,6 @@ function showCookiePopup() {
         display:flex;flex-direction:column;justify-content:center;align-items:center;
         height:100vh;text-align:center;font-family:'Segoe UI',sans-serif;
       ">
-        <h2 style="color:red;">The site need cookies to run safe.</h2>
         <button onclick="location.reload()" style="
           margin-top:20px;padding:10px 20px;border:none;background:#2196f3;color:white;
           border-radius:8px;cursor:pointer;font-size:16px;transition:0.2s;
@@ -123,6 +136,7 @@ function showCookiePopup() {
   };
 }
 
+// ===== SHOW POPUP DAILY =====
 const lastAccepted = localStorage.getItem('cookieAcceptedDate');
 const today = new Date().toDateString();
 if (lastAccepted !== today) {
