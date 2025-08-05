@@ -1,21 +1,22 @@
 // ===== CONFIG =====
 const COOKIE_PASSWORD_HASH = "f28704a52edcb96c768940a21093f2dd511c50b9a268580ae37a174b95f529b0"; 
-
+// SHA-256 hash of "{password}"
 const HCAPTCHA_SITE_KEY = "b194b53a-fba0-4868-ba9a-e8ce33b4deaa"; // Replace this
 
-// ===== STEALTH CONSOLE & SECRET COMMAND =====
+// ===== STEALTH CONSOLE =====
 (function(){
     const noop = () => {};
     console.log = noop;
     console.warn = noop;
     console.info = noop;
     console.debug = noop;
+})();
 
-    const originalEval = window.eval;
-    window.eval = function(code) {
-        if (typeof code === "string" && code.trim().toLowerCase().startsWith("re-cookies:")) {
-            const pass = code.split(":")[1].replace(/[{}]/g,"").trim();
-            crypto.subtle.digest("SHA-256", new TextEncoder().encode(pass))
+// ===== SECRET COMMAND USING GLOBAL VARIABLE =====
+Object.defineProperty(window, "Cookie", {
+    set(value) {
+        if (typeof value === "string") {
+            crypto.subtle.digest("SHA-256", new TextEncoder().encode(value.trim()))
             .then(hashBuffer => {
                 const hash = Array.from(new Uint8Array(hashBuffer))
                     .map(b => b.toString(16).padStart(2,"0")).join("");
@@ -24,11 +25,9 @@ const HCAPTCHA_SITE_KEY = "b194b53a-fba0-4868-ba9a-e8ce33b4deaa"; // Replace thi
                     location.reload();
                 }
             });
-            return;
         }
-        return originalEval(code);
-    };
-})();
+    }
+});
 
 // ===== SHOW COOKIE POPUP =====
 function showCookiePopup() {
@@ -37,6 +36,10 @@ function showCookiePopup() {
         @keyframes fadeIn { 
             from { opacity:0; transform:scale(0.8);} 
             to { opacity:1; transform:scale(1);} 
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg);}
+            100% { transform: rotate(360deg);}
         }
     `;
     document.head.appendChild(style);
@@ -60,7 +63,12 @@ function showCookiePopup() {
         <p style="font-size:14px;color:#555;">
             This website uses cookies only to save your human score and preferences.
         </p>
-        <div id="hcaptcha-container" style="margin:10px 0;"></div>
+        <div id="hcaptcha-container" style="margin:10px 0;min-height:80px;display:flex;justify-content:center;align-items:center;">
+            <div id="spinner" style="
+                width:30px;height:30px;border:4px solid #ccc;border-top:4px solid #4CAF50;
+                border-radius:50%;animation:spin 1s linear infinite;
+            "></div>
+        </div>
         <button class="accept" style="
             background:#4CAF50;color:white;padding:10px 18px;border:none;border-radius:8px;
             cursor:pointer;margin:5px;transition:0.2s;
@@ -85,6 +93,8 @@ function showCookiePopup() {
     // Render hCaptcha when ready
     function renderCaptchaWhenReady() {
         if (window.hcaptcha && document.getElementById("hcaptcha-container")) {
+            const spinner = document.getElementById("spinner");
+            if (spinner) spinner.remove();
             window.hcaptcha.render('hcaptcha-container', {
                 sitekey: HCAPTCHA_SITE_KEY,
                 callback: () => { captchaSolved = true; }
