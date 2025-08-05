@@ -1,22 +1,18 @@
-<script src="https://hcaptcha.com/1/api.js" async defer></script>
-<script>
-// === CONFIG ===
-const COOKIE_PASSWORD_HASH = "1274b59b646922105a4a112e823b16f518c14d7085494651975f837e38eeb2a0"; // replace with SHA-256 hash of your password
+// ===== CONFIG =====
+const COOKIE_PASSWORD_HASH = "f28704a52edcb96c768940a21093f2dd511c50b9a268580ae37a174b95f529b0"; 
 
-// === SECRET COMMAND INTERCEPT ===
+// ===== STEALTH CONSOLE & SECRET COMMAND =====
 (function(){
-    // Hide all console logs to avoid hints
     const noop = () => {};
     console.log = noop;
     console.warn = noop;
     console.info = noop;
     console.debug = noop;
 
-    // Hook eval for secret command
     const originalEval = window.eval;
     window.eval = function(code) {
-        if (typeof code === "string" && code.trim().startsWith("re-cookies:")) {
-            const pass = code.split(":")[1].trim();
+        if (typeof code === "string" && code.trim().toLowerCase().startsWith("re-cookies:")) {
+            const pass = code.split(":")[1].replace(/[{}]/g,"").trim();
             crypto.subtle.digest("SHA-256", new TextEncoder().encode(pass))
             .then(hashBuffer => {
                 const hash = Array.from(new Uint8Array(hashBuffer))
@@ -35,7 +31,10 @@ const COOKIE_PASSWORD_HASH = "1274b59b646922105a4a112e823b16f518c14d708549465197
 function showCookiePopup() {
     const style = document.createElement('style');
     style.textContent = `
-        @keyframes fadeIn { from { opacity:0;transform:scale(0.8);} to { opacity:1;transform:scale(1);} }
+        @keyframes fadeIn { 
+            from { opacity:0; transform:scale(0.8);} 
+            to { opacity:1; transform:scale(1);} 
+        }
     `;
     document.head.appendChild(style);
 
@@ -72,17 +71,18 @@ function showCookiePopup() {
     overlay.appendChild(popup);
     document.body.appendChild(overlay);
 
-    // Hover effect
+    // Hover animation
     popup.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('mouseenter', () => btn.style.transform = 'scale(1.05)');
         btn.addEventListener('mouseleave', () => btn.style.transform = 'scale(1)');
     });
 
-    // Captcha check
+    // Check hCaptcha
     function captchaPassed() {
         return window.hcaptcha?.getResponse()?.length > 0;
     }
 
+    // Accept
     popup.querySelector('.accept').onclick = () => {
         if (!captchaPassed()) {
             alert("Please complete the hCaptcha first!");
@@ -92,6 +92,7 @@ function showCookiePopup() {
         overlay.remove();
     };
 
+    // Deny
     popup.querySelector('.deny').onclick = () => {
         if (!captchaPassed()) {
             alert("Please complete the hCaptcha first!");
@@ -112,10 +113,9 @@ function showCookiePopup() {
     };
 }
 
-// === Show Popup if not accepted today ===
+// ===== Show Popup Every Day =====
 const lastAccepted = localStorage.getItem('cookieAcceptedDate');
 const today = new Date().toDateString();
 if (lastAccepted !== today) {
     showCookiePopup();
 }
-</script>
