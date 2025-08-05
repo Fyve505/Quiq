@@ -351,28 +351,7 @@
 
 
 
-<!-- Hcaptcha -->
 
-<script src="https://hcaptcha.com/1/api.js" async defer></script>
-<div class="h-captcha" data-sitekey="1290fa54-b664-4a32-bcc4-3c5cae7eb8f6"></div>
-
-<button onclick="checkCaptcha()">Check hCaptcha</button>
-<p id="result"></p>
-
-<script>
-function checkCaptcha() {
-    const response = hcaptcha.getResponse();
-    const resultElem = document.getElementById('result');
-
-    if (!response) {
-        alert('Please complete the hCaptcha first.');
-        resultElem.textContent = '';
-        return;
-    }
-
-    resultElem.textContent = '✅ hCaptcha completed!';
-}
-</script>
 
 
 <!-- Google tag (gtag.js) -->
