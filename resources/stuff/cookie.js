@@ -1,44 +1,3 @@
-// ===== CONFIG =====
-const COOKIE_PASSWORD_HASH = "f28704a52edcb96c768940a21093f2dd511c50b9a268580ae37a174b95f529b0";
-const HCAPTCHA_SITE_KEY = "b194b53a-fba0-4868-ba9a-e8ce33b4deaa"; // Replace with your site key
-
-// ===== SECRET FUNCTION =====
-window.Cookie = function(pass) {
-  if (typeof pass !== "string") return console.log("Input not string");
-
-  // Immediately remove to guarantee effect
-  localStorage.removeItem("cookieAcceptedDate");
-
-  crypto.subtle.digest("SHA-256", new TextEncoder().encode(pass.trim()))
-    .then(hashBuffer => {
-      const hash = Array.from(new Uint8Array(hashBuffer))
-        .map(b => b.toString(16).padStart(2, "0"))
-        .join("");
-
-      console.log("Computed hash:", hash);
-
-      if (hash === COOKIE_PASSWORD_HASH) {
-        console.log("[Secret] Password correct. Reloading...");
-        setTimeout(() => location.reload(), 100);
-      } else {
-        console.log("[Secret] Password incorrect.");
-      }
-    })
-    .catch(e => {
-      console.error("Hash error:", e);
-      setTimeout(() => location.reload(), 200);
-    });
-};
-
-// ===== STEALTH CONSOLE =====
-(function(){
-  const noop = () => {};
-  console.log = noop;
-  console.warn = noop;
-  console.info = noop;
-  console.debug = noop;
-})();
-
 // ===== SHOW COOKIE POPUP =====
 function showCookiePopup() {
   const style = document.createElement('style');
@@ -94,12 +53,13 @@ function showCookiePopup() {
 
   let captchaSolved = false;
 
+  // Render hCaptcha with spinner
   function renderCaptchaWhenReady() {
     if (window.hcaptcha && document.getElementById("hcaptcha-container")) {
       const spinner = document.getElementById("spinner");
       if (spinner) spinner.remove();
       window.hcaptcha.render('hcaptcha-container', {
-        sitekey: HCAPTCHA_SITE_KEY,
+        sitekey: "YOUR-HCAPTCHA-SITE-KEY", // replace with your sitekey
         callback: () => { captchaSolved = true; }
       });
     } else {
@@ -108,18 +68,20 @@ function showCookiePopup() {
   }
   renderCaptchaWhenReady();
 
+  // Accept
   popup.querySelector('.accept').onclick = () => {
     if (!captchaSolved) {
-      alert("Complete the hCaptcha first!");
+      alert("Please complete the hCaptcha first!");
       return;
     }
     localStorage.setItem('cookieAcceptedDate', new Date().toDateString());
     overlay.remove();
   };
 
+  // Deny
   popup.querySelector('.deny').onclick = () => {
     if (!captchaSolved) {
-      alert("Complete the hCaptcha first!");
+      alert("Please complete the hCaptcha first!");
       return;
     }
     document.body.innerHTML = `
@@ -127,6 +89,7 @@ function showCookiePopup() {
         display:flex;flex-direction:column;justify-content:center;align-items:center;
         height:100vh;text-align:center;font-family:'Segoe UI',sans-serif;
       ">
+        <h2 style="color:red;">Site Failed to load</h2>
         <button onclick="location.reload()" style="
           margin-top:20px;padding:10px 20px;border:none;background:#2196f3;color:white;
           border-radius:8px;cursor:pointer;font-size:16px;transition:0.2s;
