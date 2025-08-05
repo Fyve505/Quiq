@@ -59,7 +59,7 @@ function showCookiePopup() {
       const spinner = document.getElementById("spinner");
       if (spinner) spinner.remove();
       window.hcaptcha.render('hcaptcha-container', {
-        sitekey: "YOUR-HCAPTCHA-SITE-KEY", // replace with your sitekey
+        sitekey: "b194b53a-fba0-4868-ba9a-e8ce33b4deaa", // replace with your sitekey
         callback: () => { captchaSolved = true; }
       });
     } else {
