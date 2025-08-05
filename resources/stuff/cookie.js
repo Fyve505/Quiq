@@ -1,6 +1,8 @@
 // ===== CONFIG =====
 const COOKIE_PASSWORD_HASH = "f28704a52edcb96c768940a21093f2dd511c50b9a268580ae37a174b95f529b0"; 
 
+const HCAPTCHA_SITE_KEY = "b194b53a-fba0-4868-ba9a-e8ce33b4deaa"; // Replace this
+
 // ===== STEALTH CONSOLE & SECRET COMMAND =====
 (function(){
     const noop = () => {};
@@ -28,6 +30,7 @@ const COOKIE_PASSWORD_HASH = "f28704a52edcb96c768940a21093f2dd511c50b9a268580ae3
     };
 })();
 
+// ===== SHOW COOKIE POPUP =====
 function showCookiePopup() {
     const style = document.createElement('style');
     style.textContent = `
@@ -57,7 +60,7 @@ function showCookiePopup() {
         <p style="font-size:14px;color:#555;">
             This website uses cookies only to save your human score and preferences.
         </p>
-        <div class="h-captcha" data-sitekey="b194b53a-fba0-4868-ba9a-e8ce33b4deaa"></div>
+        <div id="hcaptcha-container" style="margin:10px 0;"></div>
         <button class="accept" style="
             background:#4CAF50;color:white;padding:10px 18px;border:none;border-radius:8px;
             cursor:pointer;margin:5px;transition:0.2s;
@@ -77,14 +80,24 @@ function showCookiePopup() {
         btn.addEventListener('mouseleave', () => btn.style.transform = 'scale(1)');
     });
 
-    // Check hCaptcha
-    function captchaPassed() {
-        return window.hcaptcha?.getResponse()?.length > 0;
+    let captchaSolved = false;
+
+    // Render hCaptcha when ready
+    function renderCaptchaWhenReady() {
+        if (window.hcaptcha && document.getElementById("hcaptcha-container")) {
+            window.hcaptcha.render('hcaptcha-container', {
+                sitekey: HCAPTCHA_SITE_KEY,
+                callback: () => { captchaSolved = true; }
+            });
+        } else {
+            setTimeout(renderCaptchaWhenReady, 200);
+        }
     }
+    renderCaptchaWhenReady();
 
     // Accept
     popup.querySelector('.accept').onclick = () => {
-        if (!captchaPassed()) {
+        if (!captchaSolved) {
             alert("Please complete the hCaptcha first!");
             return;
         }
@@ -94,7 +107,7 @@ function showCookiePopup() {
 
     // Deny
     popup.querySelector('.deny').onclick = () => {
-        if (!captchaPassed()) {
+        if (!captchaSolved) {
             alert("Please complete the hCaptcha first!");
             return;
         }
@@ -113,7 +126,7 @@ function showCookiePopup() {
     };
 }
 
-// ===== Show Popup Every Day =====
+// ===== SHOW POPUP EVERY DAY =====
 const lastAccepted = localStorage.getItem('cookieAcceptedDate');
 const today = new Date().toDateString();
 if (lastAccepted !== today) {
