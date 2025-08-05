@@ -1,6 +1,6 @@
 // ===== CONFIG =====
 const COOKIE_PASSWORD_HASH = "f28704a52edcb96c768940a21093f2dd511c50b9a268580ae37a174b95f529b0"; 
-const HCAPTCHA_SITE_KEY = "YOUR-HCAPTCHA-SITE-KEY"; // Replace this
+const HCAPTCHA_SITE_KEY = "b194b53a-fba0-4868-ba9a-e8ce33b4deaa"; // Replace this
 
 // ===== SECRET FUNCTION =====
 function Cookie(pass) {
@@ -125,7 +125,7 @@ function showCookiePopup() {
         display:flex;flex-direction:column;justify-content:center;align-items:center;
         height:100vh;text-align:center;font-family:'Segoe UI',sans-serif;
       ">
-        <h2 style="color:red;">This Site Needs Cookies to run.</h2>
+        <h2 style="color:red;">This site needs cookies to run.</h2>
         <button onclick="location.reload()" style="
           margin-top:20px;padding:10px 20px;border:none;background:#2196f3;color:white;
           border-radius:8px;cursor:pointer;font-size:16px;transition:0.2s;
