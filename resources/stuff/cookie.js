@@ -1,9 +1,9 @@
-// ===== CONFIG =====
-const COOKIE_PASSWORD_HASH = "f28704a52edcb96c768940a21093f2dd511c50b9a268580ae37a174b95f529b0"; 
-const HCAPTCHA_SITE_KEY = "b194b53a-fba0-4868-ba9a-e8ce33b4deaa"; // Replace this
+// CONFIG
+const COOKIE_PASSWORD_HASH = "f28704a52edcb96c768940a21093f2dd511c50b9a268580ae37a174b95f529b0";
+const HCAPTCHA_SITE_KEY = "b194b53a-fba0-4868-ba9a-e8ce33b4deaa"; // Replace
 
-// ===== SECRET FUNCTION =====
-function Cookie(pass) {
+// Secret command function
+window.Cookie = function(pass) {
   if (typeof pass !== "string") return;
   crypto.subtle.digest("SHA-256", new TextEncoder().encode(pass.trim()))
     .then(hashBuffer => {
@@ -13,13 +13,11 @@ function Cookie(pass) {
       if (hash === COOKIE_PASSWORD_HASH) {
         localStorage.removeItem("cookieAcceptedDate");
         location.reload();
-      } else {
-        console.log("Wrong password.");
       }
     });
-}
+};
 
-// ===== STEALTH CONSOLE =====
+// Stealth console logs
 (function(){
   const noop = () => {};
   console.log = noop;
@@ -28,18 +26,12 @@ function Cookie(pass) {
   console.debug = noop;
 })();
 
-// ===== SHOW COOKIE POPUP =====
+// Show popup function
 function showCookiePopup() {
   const style = document.createElement('style');
   style.textContent = `
-    @keyframes fadeIn { 
-      from { opacity:0; transform:scale(0.8);} 
-      to { opacity:1; transform:scale(1);} 
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg);}
-      100% { transform: rotate(360deg);}
-    }
+    @keyframes fadeIn { from {opacity:0; transform:scale(0.8);} to {opacity:1; transform:scale(1);} }
+    @keyframes spin { 0% {transform:rotate(0deg);} 100% {transform:rotate(360deg);} }
   `;
   document.head.appendChild(style);
 
@@ -81,7 +73,6 @@ function showCookiePopup() {
   overlay.appendChild(popup);
   document.body.appendChild(overlay);
 
-  // Hover animation
   popup.querySelectorAll('button').forEach(btn => {
     btn.addEventListener('mouseenter', () => btn.style.transform = 'scale(1.05)');
     btn.addEventListener('mouseleave', () => btn.style.transform = 'scale(1)');
@@ -89,7 +80,6 @@ function showCookiePopup() {
 
   let captchaSolved = false;
 
-  // Render hCaptcha when ready
   function renderCaptchaWhenReady() {
     if (window.hcaptcha && document.getElementById("hcaptcha-container")) {
       const spinner = document.getElementById("spinner");
@@ -104,7 +94,6 @@ function showCookiePopup() {
   }
   renderCaptchaWhenReady();
 
-  // Accept
   popup.querySelector('.accept').onclick = () => {
     if (!captchaSolved) {
       alert("Please complete the hCaptcha first!");
@@ -114,7 +103,6 @@ function showCookiePopup() {
     overlay.remove();
   };
 
-  // Deny
   popup.querySelector('.deny').onclick = () => {
     if (!captchaSolved) {
       alert("Please complete the hCaptcha first!");
@@ -125,7 +113,7 @@ function showCookiePopup() {
         display:flex;flex-direction:column;justify-content:center;align-items:center;
         height:100vh;text-align:center;font-family:'Segoe UI',sans-serif;
       ">
-        <h2 style="color:red;">This site needs cookies to run.</h2>
+        <h2 style="color:red;">The site need cookies to run safe.</h2>
         <button onclick="location.reload()" style="
           margin-top:20px;padding:10px 20px;border:none;background:#2196f3;color:white;
           border-radius:8px;cursor:pointer;font-size:16px;transition:0.2s;
@@ -135,7 +123,6 @@ function showCookiePopup() {
   };
 }
 
-// ===== SHOW POPUP EVERY DAY =====
 const lastAccepted = localStorage.getItem('cookieAcceptedDate');
 const today = new Date().toDateString();
 if (lastAccepted !== today) {
